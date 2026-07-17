@@ -17,6 +17,18 @@ Hangar Carousel Plus — мод для ангара World of Tanks 2.x, який
 
 Мод не передає облікові дані чи статистику зовнішнім сервісам. HCP звужує нативну модель списку техніки до застосування стандартних фільтрів Gameface. Динамічні списки техніки не використовуються.
 
+## Завантаження та встановлення
+
+[Завантажити Hangar Carousel Plus 0.8.5](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1)
+
+1. Закрийте World of Tanks.
+2. Переконайтеся, що встановлені `net.openwg.gameface` 1.1.5 або новіший і ModsSettingsAPI.
+3. Скопіюйте `.wotmod` у `<гра>\mods\2.3.1.0\`.
+4. Видаліть старі `com.rcooler.hangar_carousel_plus_*.wotmod`, якщо вони залишилися в цій папці.
+5. Запустіть гру.
+
+Контрольна сума опублікованого файла міститься поруч у `SHA256SUMS.txt`.
+
 ## Вимоги
 
 - World of Tanks Wargaming 2.3.1.x;
@@ -35,7 +47,7 @@ Hangar Carousel Plus — мод для ангара World of Tanks 2.x, який
 Готовий пакет створюється тут:
 
 ```text
-dist\com.rcooler.hangar_carousel_plus_0.8.4.wotmod
+dist\com.rcooler.hangar_carousel_plus_0.8.5.wotmod
 ```
 
 Зібрати та одразу встановити у локальний клієнт:

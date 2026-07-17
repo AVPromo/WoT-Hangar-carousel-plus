@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.5 - 2026-07-17
+
+- Replace Gameface-incompatible text sorting glyphs with six dedicated white SVG icons and SVG direction arrows.
+- Remove the unsupported `-webkit-text-fill-color` property that prevented reliable sort icon rendering.
+
 ## 0.8.4 - 2026-07-17
 
 - Force row-layout SVG bars and digits white at their actual DOM nodes.

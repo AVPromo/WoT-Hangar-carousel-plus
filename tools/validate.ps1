@@ -64,8 +64,12 @@ try {
     }
     if (-not $jsSource.Contains('carouselRowButtonContent') -or
         -not $jsSource.Contains('labels().carousel_auto') -or
-        -not $jsSource.Contains('appendWhiteGlyph')) {
+        -not $jsSource.Contains('SORT_ICONS') -or
+        -not $jsSource.Contains('SORT_DIRECTION_ICONS')) {
         throw 'Carousel row icon controls or automatic mode UI are missing.'
+    }
+    if ($jsSource.Contains('-webkit-text-fill-color')) {
+        throw 'Unsupported Gameface text-fill property found.'
     }
     if (-not $jsSource.Contains('onSetSorting') -or
         -not $jsSource.Contains('applyActionCardsVisibility')) {
@@ -159,10 +163,12 @@ try {
     }
     if (-not $cssSource.Contains('.hcp-native-filter svg *') -or
         -not $cssSource.Contains('stroke: #fff !important') -or
-        -not $cssSource.Contains('-webkit-text-fill-color: #fff !important') -or
         -not $cssSource.Contains('.hcp-native-row-button svg *') -or
-        -not $cssSource.Contains('.hcp-native-sort-glyph')) {
+        -not $cssSource.Contains('.hcp-native-sort-svg')) {
         throw 'Filter and sorting glyphs are not force-colored white.'
+    }
+    if ($cssSource.Contains('-webkit-text-fill-color')) {
+        throw 'Unsupported Gameface text-fill style found.'
     }
     if ($cssSource.Contains('hcp-currency-lock')) {
         throw 'Currency protection styles must not be included in this carousel mod.'

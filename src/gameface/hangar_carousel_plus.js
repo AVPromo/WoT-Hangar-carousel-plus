@@ -167,6 +167,20 @@ const FILTER_ICONS = {
   research_ready: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 12h5M12 12l5-6M12 12l5 6M9 9l3 3-3 3"/></svg>'
 };
 
+const SORT_ICONS = {
+  default: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M5 7l3-3 3 3M16 20V4M13 17l3 3 3-3"/></svg>',
+  battles: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M4 20v-6h4v6M10 20V9h4v11M16 20V4h4v16"/></svg>',
+  winRate: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 18 5-5 4 3 7-9M15 7h5v5"/></svg>',
+  averageDamage: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 12h6l-1 8 9-13h-6z"/></svg>',
+  marksOnGun: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  lastPlayed: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>'
+};
+
+const SORT_DIRECTION_ICONS = {
+  descending: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M7 15l5 5 5-5"/></svg>',
+  ascending: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4M7 9l5-5 5 5"/></svg>'
+};
+
 let state = { filters: [], stats: {}, statsConfig: {}, sorting: {}, actionCards: {}, carousel: { rows: 2 }, enabled: false };
 let activeFilters = [];
 let lastStateJson = "";
@@ -413,16 +427,7 @@ function carouselRowButtonContent(rows) {
     bars.push(`<rect x="2" y="${2 + index * 4}" width="12" height="2" rx="0.5" style="fill:#fff!important"/>`);
   }
   return `<svg viewBox="0 0 16 18" aria-hidden="true" style="color:#fff!important;fill:#fff!important">${bars.join("")}</svg>` +
-    `<span class="hcp-native-row-button-label" style="color:#fff!important;-webkit-text-fill-color:#fff!important">${automatic ? "A" : rows}</span>`;
-}
-
-function appendWhiteGlyph(button, text) {
-  const glyph = document.createElement("span");
-  glyph.className = "hcp-native-sort-glyph";
-  glyph.textContent = text;
-  glyph.style.setProperty("color", "#fff", "important");
-  glyph.style.setProperty("-webkit-text-fill-color", "#fff", "important");
-  button.appendChild(glyph);
+    `<span class="hcp-native-row-button-label" style="color:#fff!important">${automatic ? "A" : rows}</span>`;
 }
 
 function renderNativeFilterPanel() {
@@ -498,20 +503,12 @@ function renderNativeFilterPanel() {
     const sorting = document.createElement("div");
     sorting.className = "hcp-native-sorting";
     section.appendChild(sorting);
-    const sortGlyphs = {
-      default: "↕",
-      battles: "B",
-      winRate: "WR",
-      averageDamage: "D",
-      marksOnGun: "★",
-      lastPlayed: "◷"
-    };
     for (const mode of state.sorting.options) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "hcp-native-sort-button";
       if (mode === state.sorting.mode) button.classList.add("hcp-native-sort-button--active");
-      appendWhiteGlyph(button, sortGlyphs[mode] || mode.slice(0, 2).toUpperCase());
+      button.innerHTML = SORT_ICONS[mode] || SORT_ICONS.default;
       const title = labels()[`sort_${mode}`] || mode;
       button.setAttribute("aria-label", title);
       button.title = title;
@@ -528,7 +525,9 @@ function renderNativeFilterPanel() {
     const direction = document.createElement("button");
     direction.type = "button";
     direction.className = "hcp-native-sort-button hcp-native-sort-direction";
-    appendWhiteGlyph(direction, state.sorting.descending ? "↓" : "↑");
+    direction.innerHTML = state.sorting.descending
+      ? SORT_DIRECTION_ICONS.descending
+      : SORT_DIRECTION_ICONS.ascending;
     direction.title = state.sorting.descending ? labels().descending : labels().ascending;
     bindTooltip(direction, direction.title, labels()[`sort_${state.sorting.mode}`] || state.sorting.mode);
     direction.addEventListener("click", (event) => {

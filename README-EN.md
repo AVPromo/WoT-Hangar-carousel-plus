@@ -17,6 +17,18 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 
 No account credentials or statistics are sent to an external service. HCP narrows the native vehicle list before the standard Gameface filters run. It does not create dynamic vehicle playlists.
 
+## Download and install
+
+[Download Hangar Carousel Plus 0.8.5](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1)
+
+1. Close World of Tanks.
+2. Make sure `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI are installed.
+3. Copy the `.wotmod` file into `<game>\mods\2.3.1.0\`.
+4. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from that directory.
+5. Start the game.
+
+The published file checksum is available alongside the package in `SHA256SUMS.txt`.
+
 ## Requirements
 
 - World of Tanks Wargaming client 2.3.1.x;
@@ -35,7 +47,7 @@ The build helper downloads the official Python 2.7.18 MSI into `.tools/` and ext
 The resulting package is written to:
 
 ```text
-dist\com.rcooler.hangar_carousel_plus_0.8.4.wotmod
+dist\com.rcooler.hangar_carousel_plus_0.8.5.wotmod
 ```
 
 Build and install into a local client:

@@ -120,21 +120,29 @@
   stroke: none !important;
 }
 
-.hcp-native-row-button-label,
-.hcp-native-sort-glyph {
+.hcp-native-row-button-label {
   min-width: 9rem;
   color: #fff !important;
-  -webkit-text-fill-color: #fff !important;
   font-size: 13rem;
   line-height: 18rem;
   text-align: center;
   text-shadow: none !important;
 }
 
-.hcp-native-sort-glyph {
-  min-width: 0;
-  font-size: inherit;
-  line-height: 1;
+.hcp-native-sort-svg {
+  width: 19rem;
+  height: 19rem;
+  color: #fff !important;
+  fill: none !important;
+  stroke: #fff !important;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hcp-native-sort-button .hcp-native-sort-svg * {
+  fill: none !important;
+  stroke: #fff !important;
 }
 
 .hcp-native-filter svg {
@@ -189,7 +197,6 @@
 .hcp-native-icon-button,
 .hcp-native-sort-button {
   color: #fff !important;
-  -webkit-text-fill-color: #fff !important;
 }
 
 .hcp-native-filter svg,
