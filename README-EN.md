@@ -19,21 +19,19 @@ No account credentials or statistics are sent to an external service. HCP narrow
 
 ## Download and install
 
-[Download Hangar Carousel Plus 0.8.5](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1)
+[Download the complete Hangar Carousel Plus 0.8.5 bundle](releases/0.8.5/Hangar_Carousel_Plus_0.8.5_complete.zip?raw=1)
 
 1. Close World of Tanks.
-2. Make sure `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI are installed.
-3. Copy the `.wotmod` file into `<game>\mods\2.3.1.0\`.
-4. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from that directory.
-5. Start the game.
+2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\2.3.1.0\`.
+3. Extract the ZIP directly into the World of Tanks root and allow it to merge the `mods` directory.
+4. Start the game.
 
-The published file checksum is available alongside the package in `SHA256SUMS.txt`.
+The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.0\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
 
 ## Requirements
 
 - World of Tanks Wargaming client 2.3.1.x;
-- `net.openwg.gameface` 1.1.5 or newer;
-- ModsSettingsAPI for the settings page;
+- `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI, both included in the complete bundle;
 - Windows PowerShell 5.1 or PowerShell 7 for building.
 
 The build helper downloads the official Python 2.7.18 MSI into `.tools/` and extracts a private compiler. It does not install Python system-wide.

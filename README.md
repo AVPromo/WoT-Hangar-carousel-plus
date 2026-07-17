@@ -19,21 +19,19 @@ Hangar Carousel Plus — мод для ангара World of Tanks 2.x, який
 
 ## Завантаження та встановлення
 
-[Завантажити Hangar Carousel Plus 0.8.5](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1)
+[Завантажити повний комплект Hangar Carousel Plus 0.8.5](releases/0.8.5/Hangar_Carousel_Plus_0.8.5_complete.zip?raw=1)
 
 1. Закрийте World of Tanks.
-2. Переконайтеся, що встановлені `net.openwg.gameface` 1.1.5 або новіший і ModsSettingsAPI.
-3. Скопіюйте `.wotmod` у `<гра>\mods\2.3.1.0\`.
-4. Видаліть старі `com.rcooler.hangar_carousel_plus_*.wotmod`, якщо вони залишилися в цій папці.
-5. Запустіть гру.
+2. Видаліть старі `com.rcooler.hangar_carousel_plus_*.wotmod` із `<гра>\mods\2.3.1.0\`.
+3. Розпакуйте ZIP безпосередньо в корінь World of Tanks, погодившись об’єднати папку `mods`.
+4. Запустіть гру.
 
-Контрольна сума опублікованого файла міститься поруч у `SHA256SUMS.txt`.
+Комплект уже містить HCP та всі його залежності у стандартній структурі `mods\2.3.1.0\`. Для досвідчених користувачів також доступний [окремий файл HCP](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1). Контрольні суми містяться в `SHA256SUMS.txt`, а сторонні компоненти перелічені в `THIRD_PARTY.md`.
 
 ## Вимоги
 
 - World of Tanks Wargaming 2.3.1.x;
-- `net.openwg.gameface` 1.1.5 або новіший;
-- встановлений ModsSettingsAPI для сторінки налаштувань;
+- `net.openwg.gameface` 1.1.5 або новіший і ModsSettingsAPI — уже включені в повний комплект;
 - Windows PowerShell 5.1 або PowerShell 7 для збирання.
 
 Скрипт збирання завантажує офіційний MSI Python 2.7.18 у локальну папку `.tools/` і видобуває приватний компілятор. Системне встановлення Python не виконується.
