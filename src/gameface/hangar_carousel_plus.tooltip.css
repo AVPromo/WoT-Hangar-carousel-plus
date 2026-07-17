@@ -1,0 +1,80 @@
+.hcp-tooltip-stats-title {
+  margin-left: 105rem;
+  margin-bottom: 6rem;
+  color: rgba(238, 237, 233, 0.9);
+  font-size: 18rem;
+  font-weight: 600;
+  line-height: 1.3em;
+}
+
+.hcp-tooltip-stat-row {
+  display: flex;
+  align-items: flex-start;
+  padding-bottom: 3rem;
+  font-size: 18rem;
+  font-weight: 400;
+  line-height: 1.3em;
+}
+
+.hcp-tooltip-stat-value {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  width: 105rem;
+  padding-right: 8rem;
+  color: rgba(238, 237, 233, 0.9);
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.hcp-tooltip-stat-label {
+  max-width: 280rem;
+  color: var(--color-general-tertiary);
+}
+
+.hcp-tooltip-stat-value--damage {
+  color: #ffb36b;
+}
+
+.hcp-tooltip-stat-value--win-rate-bad {
+  color: #ff6666;
+}
+
+.hcp-tooltip-stat-value--win-rate-below-average {
+  color: #ff9f5a;
+}
+
+.hcp-tooltip-stat-value--win-rate-average {
+  color: #ffd45c;
+}
+
+.hcp-tooltip-stat-value--win-rate-good {
+  color: #91dc63;
+}
+
+.hcp-tooltip-stat-value--win-rate-great {
+  color: #54d8cf;
+}
+
+.hcp-tooltip-stat-value--win-rate-exceptional {
+  color: #c98cff;
+}
+
+.hcp-tooltip-stat-value--mastery-1,
+.hcp-tooltip-stat-value--marks-1 {
+  color: #d49a68;
+}
+
+.hcp-tooltip-stat-value--mastery-2,
+.hcp-tooltip-stat-value--marks-2 {
+  color: #d5dde8;
+}
+
+.hcp-tooltip-stat-value--mastery-3,
+.hcp-tooltip-stat-value--marks-3 {
+  color: #ffd766;
+}
+
+.hcp-tooltip-stat-value--mastery-4 {
+  color: #c98cff;
+}

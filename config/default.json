@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 4,
+  "enabled": true,
+  "filters": {
+    "enabled": [
+      "all",
+      "field_mod_incomplete",
+      "crew_not_maxed",
+      "non_elite",
+      "reward_special",
+      "not_ready",
+      "no_mastery",
+      "marks_incomplete",
+      "research_ready"
+    ],
+    "playlistPrefix": "HCP · "
+  },
+  "cardStats": {
+    "enabled": true,
+    "fields": [
+      "battles",
+      "winRate",
+      "averageDamage",
+      "mastery",
+      "marksOnGun"
+    ],
+    "minimumBattles": 1
+  },
+  "sorting": {
+    "enabled": true,
+    "options": [
+      "default",
+      "battles",
+      "winRate",
+      "averageDamage",
+      "marksOnGun",
+      "lastPlayed"
+    ],
+    "default": "default",
+    "descending": true
+  },
+  "actionCards": {
+    "hideBuyTank": false,
+    "hideBuySlot": false,
+    "hideRestoreTank": false
+  },
+  "debug": false
+}
