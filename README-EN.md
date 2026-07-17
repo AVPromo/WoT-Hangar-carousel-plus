@@ -17,6 +17,8 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 
 No account credentials or statistics are sent to an external service.
 
+[![Hangar Carousel Plus filters, sorting, statistics, and three-row carousel](docs/images/hangar-carousel-plus.png)](docs/images/hangar-carousel-plus.png)
+
 ## Download and install
 
 [Download the complete Hangar Carousel Plus 0.8.5 bundle](releases/0.8.5/Hangar_Carousel_Plus_0.8.5_complete.zip?raw=1)

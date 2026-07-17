@@ -17,6 +17,8 @@ Hangar Carousel Plus — мод для ангара World of Tanks 2.x, який
 
 Мод не передає облікові дані чи статистику зовнішнім сервісам.
 
+[![Hangar Carousel Plus — фільтри, сортування, статистика та три ряди каруселі](docs/images/hangar-carousel-plus.png)](docs/images/hangar-carousel-plus.png)
+
 ## Завантаження та встановлення
 
 [Завантажити повний комплект Hangar Carousel Plus 0.8.5](releases/0.8.5/Hangar_Carousel_Plus_0.8.5_complete.zip?raw=1)
