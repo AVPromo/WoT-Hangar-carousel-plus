@@ -1,0 +1,98 @@
+# Developer guide
+
+[User documentation (Українська)](README.md) · [User documentation (English)](README-EN.md) · [Architecture](docs/architecture.md)
+
+## Compatibility boundary
+
+Hangar Carousel Plus currently targets the Wargaming EU 2.3.1.x client. Its Python APIs, generated models, DOM hooks, and version-locked native Gameface bundle substitutions are private game interfaces. Rebuild and test the mod after every World of Tanks update.
+
+The native carousel and tooltip patches are protected by source checksums and exact replacement counts. The build stops when the installed client resources do not match the supported version. Patched client resources are generated locally; no original Wargaming bundle is committed to this repository.
+
+## Prerequisites
+
+- Windows PowerShell 5.1 or PowerShell 7;
+- a local World of Tanks Wargaming EU 2.3.1.x installation;
+- enough network access for the first build to download the official Python 2.7.18 MSI.
+
+When `-Python27` is not supplied, `tools/bootstrap-python27.ps1` verifies and extracts the official MSI into the local `.tools/` directory. It does not install Python system-wide.
+
+## Build
+
+From the repository root:
+
+```powershell
+.\tools\build.ps1
+```
+
+The default game root is declared in `tools/build.ps1`. Override it for another installation:
+
+```powershell
+.\tools\build.ps1 -GameRoot 'E:\Games\World of Tanks'
+```
+
+The package is written to:
+
+```text
+dist\com.rcooler.hangar_carousel_plus_0.8.5.wotmod
+```
+
+Build and install in one step:
+
+```powershell
+.\tools\build.ps1 -Install -GameRoot 'E:\Games\World of Tanks'
+```
+
+The installer backs up an existing HCP package before replacement. It preserves the user's live `config.json`; `tools/install.ps1 -ForceConfig` is the explicit opt-in for replacing that configuration with the repository default.
+
+## Build pipeline
+
+`tools/build.ps1` performs the following operations:
+
+1. compiles `src/python/mod_hangar_carousel_plus.py` with Python 2.7;
+2. stages the Python, Gameface, configuration, metadata, and localization resources;
+3. extracts and patches checksum-verified carousel and tooltip resources from the local client;
+4. packages the staging tree as a `.wotmod` file;
+5. runs `tools/validate.ps1` against the completed package;
+6. optionally installs it into the selected game client.
+
+`tools/patch-native-carousel.ps1` generalizes the client's hard-coded row-pair logic so the provider can render one through four rows. `tools/patch-native-tooltip.ps1` adds the HCP statistics renderer and styles to the root vehicle tooltip, which is outside the OpenWG subview injector. Both scripts verify the source resource hashes and every expected substitution.
+
+The Python bridge publishes configuration, localized strings, filter state, vehicle statistics, sorting data, and row state to Gameface. HCP narrows the native vehicle model before the normal client filters run; it does not create dynamic vehicle playlists. See [docs/architecture.md](docs/architecture.md) for the component-level design.
+
+## Configuration and runtime state
+
+The repository default is `config/default.json`. The installed user configuration is:
+
+```text
+<game>\res_mods\configs\hangar_carousel_plus\config.json
+```
+
+Sorting direction, last-played timestamps, and carousel row mode are stored in `runtime.json` next to the live configuration. Changes to the configuration schema must preserve or migrate existing user values, because normal installation deliberately does not overwrite this file.
+
+## Validation
+
+The normal build already invokes the package validator. To validate an existing artifact separately:
+
+```powershell
+.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.5.wotmod'
+```
+
+After a client update:
+
+1. confirm the client version and active `mods` directory;
+2. rebuild against the new local client resources;
+3. update the guarded source hashes and exact substitutions only after reviewing the changed bundles;
+4. test every filter, sort mode, card statistic, hover statistic, row mode, action-card option, settings page, and language fallback;
+5. update the supported version in documentation and release artifacts.
+
+## Release packaging
+
+User releases live under `releases/<version>/`. A complete release must include:
+
+- the standalone HCP `.wotmod` file;
+- a ZIP rooted at the standard `mods/<client-version>/` directory;
+- the HCP runtime dependencies (`net.openwg.gameface`, ModsListAPI, and ModsSettingsAPI);
+- `SHA256SUMS.txt` for published artifacts;
+- `THIRD_PARTY.md` with dependency names, versions, sources, and licenses.
+
+Update both user README download links, the changelog, package metadata, and artifact names when the mod version changes. Commit generated public release artifacts intentionally and tag the exact published commit.

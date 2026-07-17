@@ -15,7 +15,7 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 - a settings page through ModsSettingsAPI;
 - localization for all 24 EU client languages.
 
-No account credentials or statistics are sent to an external service. HCP narrows the native vehicle list before the standard Gameface filters run. It does not create dynamic vehicle playlists.
+No account credentials or statistics are sent to an external service.
 
 ## Download and install
 
@@ -31,30 +31,7 @@ The bundle already contains HCP and all required dependencies in the standard `m
 ## Requirements
 
 - World of Tanks Wargaming client 2.3.1.x;
-- `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI, both included in the complete bundle;
-- Windows PowerShell 5.1 or PowerShell 7 for building.
-
-The build helper downloads the official Python 2.7.18 MSI into `.tools/` and extracts a private compiler. It does not install Python system-wide.
-
-## Build
-
-```powershell
-.\tools\build.ps1
-```
-
-The resulting package is written to:
-
-```text
-dist\com.rcooler.hangar_carousel_plus_0.8.5.wotmod
-```
-
-Build and install into a local client:
-
-```powershell
-.\tools\build.ps1 -Install -GameRoot 'E:\Games\World of Tanks'
-```
-
-The installer backs up the previous HCP package and does not overwrite the user `config.json` unless `-ForceConfig` is explicitly supplied.
+- `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI, both included in the complete bundle.
 
 ## Configuration
 
@@ -64,7 +41,7 @@ The active configuration is stored at:
 <game>\res_mods\configs\hangar_carousel_plus\config.json
 ```
 
-Use the ModsSettingsAPI page or edit `filters.enabled`, `cardStats`, `sorting`, and `actionCards`. The repository default is stored in `config/default.json`.
+Use the ModsSettingsAPI page or edit `filters.enabled`, `cardStats`, `sorting`, and `actionCards`.
 
 Sorting direction, last-played timestamps, and carousel row mode are stored separately in `runtime.json`.
 
@@ -91,7 +68,7 @@ Vehicle cards show four compact, shadow-free lines containing battles and win ra
 
 ## Carousel rows
 
-WoT 2.3.1 natively implements either one-row cards or hard-coded pairs. During the build, HCP copies the local client bundle and applies a small set of exact, guarded substitutions to support three and four rows. A checksum guard refuses to build against unknown client resources. No Wargaming bundle is committed to this repository.
+The controls in the filter panel select one to four rows or automatic mode. Automatic mode uses the thresholds listed in the configuration section.
 
 ## Localization
 
@@ -101,6 +78,4 @@ The language is detected automatically. HCP includes all 24 languages declared b
 
 Remove `com.rcooler.hangar_carousel_plus_*.wotmod` from the active `mods\<client-version>` directory. The configuration and locally tracked last-played data may be removed separately.
 
-## Compatibility
-
-The Python API, DOM hooks, and version-locked native bundle substitutions are private game interfaces. Rebuild and retest after every World of Tanks update. The checksum guard prevents package creation when the client resources have changed.
+Development, build, and release documentation: [DEVELOPERS.md](DEVELOPERS.md).
