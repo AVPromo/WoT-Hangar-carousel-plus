@@ -53,10 +53,10 @@
 .hcp-native-sort-button {
   box-sizing: border-box;
   display: flex;
-  flex: 0 0 32rem;
+  flex: 0 0 28rem;
   align-items: center;
   justify-content: center;
-  width: 32rem;
+  width: 28rem;
   height: 28rem;
   padding: 0;
   border: 1rem solid rgba(255, 255, 255, 0.17);

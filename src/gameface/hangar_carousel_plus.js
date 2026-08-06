@@ -29,6 +29,7 @@ const LABELS = {
     sort_averageDamage: "Average damage",
     sort_marksOnGun: "Marks of Excellence",
     sort_lastPlayed: "Last played (HCP)",
+    sort_priority: "Primary > Field Modification > default",
     smart_filters: "HCP smart filters",
     sorting: "HCP sorting",
     toggle_on: "ON",
@@ -75,6 +76,7 @@ const LABELS = {
     sort_averageDamage: "Средний урон",
     sort_marksOnGun: "Отметки",
     sort_lastPlayed: "Последний бой (HCP)",
+    sort_priority: "Основные > полевая модернизация > обычный порядок",
     smart_filters: "Умные фильтры HCP",
     sorting: "Сортировка HCP",
     toggle_on: "ВКЛ",
@@ -121,6 +123,7 @@ const LABELS = {
     sort_averageDamage: "Середня шкода",
     sort_marksOnGun: "Відмітки",
     sort_lastPlayed: "Останній бій (HCP)",
+    sort_priority: "Основні > польова модернізація > звичайний порядок",
     smart_filters: "Розумні фільтри HCP",
     sorting: "Сортування HCP",
     toggle_on: "УВІМК",
@@ -173,7 +176,8 @@ const SORT_ICONS = {
   winRate: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 18 5-5 4 3 7-9M15 7h5v5"/></svg>',
   averageDamage: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 12h6l-1 8 9-13h-6z"/></svg>',
   marksOnGun: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
-  lastPlayed: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>'
+  lastPlayed: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>',
+  priority: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3 1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4zM14 6h7M14 11h7M3 16h18M7 13v6M12 13v6"/></svg>'
 };
 
 const SORT_DIRECTION_ICONS = {
@@ -187,6 +191,7 @@ let lastStateJson = "";
 let lastActiveFiltersJson = "";
 let lastStatsDiagnostic = "";
 let scheduled = false;
+let renderTimer = null;
 let tooltipElement = null;
 
 function unwrap(value) {
@@ -234,15 +239,29 @@ function callCommand(commandName, payload) {
 }
 
 function scheduleRender() {
-  if (scheduled) return;
-  scheduled = true;
-  requestAnimationFrame(() => {
-    scheduled = false;
-    applyCarouselRowsClass();
-    applyActionCardsVisibility();
-    renderNativeFilterPanel();
-    renderCardStats();
-  });
+  if (scheduled || renderTimer !== null) return;
+  renderTimer = window.setTimeout(() => {
+    renderTimer = null;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      applyCarouselRowsClass();
+      applyActionCardsVisibility();
+      renderNativeFilterPanel();
+      renderCardStats();
+    });
+  }, 40);
+}
+
+function mutationAffectsHcp(mutation) {
+  const selector = `[data-test-id^="${CARD_PREFIX}"], [class*="FilterPopover_"]`;
+  const target = mutation.target?.nodeType === Node.ELEMENT_NODE ? mutation.target : mutation.target?.parentElement;
+  if (target?.matches?.(selector) || target?.closest?.(selector)) return true;
+  for (const node of [...mutation.addedNodes, ...mutation.removedNodes]) {
+    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    if (node.matches?.(selector) || node.querySelector?.(selector)) return true;
+  }
+  return false;
 }
 
 function applyCarouselRowsClass() {
@@ -522,23 +541,25 @@ function renderNativeFilterPanel() {
       });
       sorting.appendChild(button);
     }
-    const direction = document.createElement("button");
-    direction.type = "button";
-    direction.className = "hcp-native-sort-button hcp-native-sort-direction";
-    direction.innerHTML = state.sorting.descending
-      ? SORT_DIRECTION_ICONS.descending
-      : SORT_DIRECTION_ICONS.ascending;
-    direction.title = state.sorting.descending ? labels().descending : labels().ascending;
-    bindTooltip(direction, direction.title, labels()[`sort_${state.sorting.mode}`] || state.sorting.mode);
-    direction.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      callCommand("onSetSorting", {
-        mode: state.sorting.mode || "default",
-        descending: !Boolean(state.sorting.descending)
+    if (state.sorting.directional !== false) {
+      const direction = document.createElement("button");
+      direction.type = "button";
+      direction.className = "hcp-native-sort-button hcp-native-sort-direction";
+      direction.innerHTML = state.sorting.descending
+        ? SORT_DIRECTION_ICONS.descending
+        : SORT_DIRECTION_ICONS.ascending;
+      direction.title = state.sorting.descending ? labels().descending : labels().ascending;
+      bindTooltip(direction, direction.title, labels()[`sort_${state.sorting.mode}`] || state.sorting.mode);
+      direction.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        callCommand("onSetSorting", {
+          mode: state.sorting.mode || "default",
+          descending: !Boolean(state.sorting.descending)
+        });
       });
-    });
-    sorting.appendChild(direction);
+      sorting.appendChild(direction);
+    }
   }
 
   addHeading(section, labels().carousel_rows);
@@ -597,7 +618,9 @@ function syncModel() {
 }
 
 engine.whenReady.then(() => {
-  const observer = new MutationObserver(scheduleRender);
+  const observer = new MutationObserver((mutations) => {
+    if (mutations.some(mutationAffectsHcp)) scheduleRender();
+  });
   observer.observe(document.body, {
     childList: true,
     subtree: true,
@@ -606,7 +629,6 @@ engine.whenReady.then(() => {
   });
   window.engine.on("subViews.onAdded", syncModel);
   window.setInterval(syncModel, 500);
-  window.setInterval(renderCardStats, 250);
   syncModel();
   scheduleRender();
 });

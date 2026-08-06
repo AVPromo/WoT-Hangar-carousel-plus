@@ -33,7 +33,7 @@ from skeletons.gui.shared import IItemsCache
 
 
 MOD_ID = 'hangar_carousel_plus'
-MOD_VERSION = '0.8.5'
+MOD_VERSION = '0.8.7'
 PLAYLIST_ID_PREFIX = 'rcooler_hcp_'
 CONFIG_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'config.json')
 RUNTIME_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'runtime.json')
@@ -46,7 +46,7 @@ TOOLTIP_CSS_URL = 'coui://gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_
 LOGGER = logging.getLogger('HangarCarouselPlus')
 
 DEFAULT_CONFIG = {
-    'schemaVersion': 4,
+    'schemaVersion': 5,
     'enabled': True,
     'filters': {
         'enabled': [
@@ -63,7 +63,10 @@ DEFAULT_CONFIG = {
     },
     'sorting': {
         'enabled': True,
-        'options': ['default', 'battles', 'winRate', 'averageDamage', 'marksOnGun', 'lastPlayed'],
+        'options': [
+            'default', 'battles', 'winRate', 'averageDamage', 'marksOnGun',
+            'lastPlayed', 'priority'
+        ],
         'default': 'default',
         'descending': True
     },
@@ -80,7 +83,10 @@ FILTER_ORDER = (
     'reward_special', 'not_ready', 'no_mastery',
     'marks_incomplete', 'research_ready'
 )
-SORT_ORDER = ('default', 'battles', 'winRate', 'averageDamage', 'marksOnGun', 'lastPlayed')
+SORT_ORDER = (
+    'default', 'battles', 'winRate', 'averageDamage', 'marksOnGun',
+    'lastPlayed', 'priority'
+)
 RUNTIME_DEFAULT = {
     'lastPlayed': {},
     'activeFilters': [],
@@ -105,6 +111,10 @@ LAST_DATA_SUMMARY = None
 LEGACY_PLAYLISTS_REMOVED = False
 TOOLTIP_PAYLOAD_LOGGED = False
 SETTINGS_REGISTERED = False
+VEHICLE_DATA_CACHE = {}
+STATE_JSON_CACHE = None
+SORT_JSON_CACHE = None
+MODEL_REFRESH_PENDING = False
 
 
 def _is_hcp_playlist_id(value):
@@ -140,7 +150,13 @@ def _migrate_config(loaded):
         filters['enabled'] = enabled
         loaded['schemaVersion'] = 3
     loaded.pop('currencyLocks', None)
-    loaded['schemaVersion'] = 4
+    if int(loaded.get('schemaVersion', 3)) < 5:
+        sorting = loaded.setdefault('sorting', {})
+        options = list(sorting.get('options', DEFAULT_CONFIG['sorting']['options']))
+        if 'priority' not in options:
+            options.append('priority')
+        sorting['options'] = options
+    loaded['schemaVersion'] = 5
     return loaded
 
 
@@ -229,6 +245,7 @@ def _sync_carousel_auto_property(enabled):
 
 def _set_carousel_rows(rows, automatic=False):
     rows = int(rows)
+    _invalidate_render_cache(include_sort=False)
     if rows == 0:
         RUNTIME_STATE['carouselRowsMode'] = 'auto'
         _save_runtime()
@@ -262,6 +279,49 @@ def _set_carousel_rows(rows, automatic=False):
 def _inventory_vehicles():
     criteria = REQ_CRITERIA.INVENTORY | REQ_CRITERIA.VEHICLE.ACTIVE_IN_NATION_GROUP
     return SERVICES.itemsCache.items.getVehicles(criteria)
+
+
+def _invalidate_render_cache(include_sort=True):
+    global STATE_JSON_CACHE, SORT_JSON_CACHE
+    STATE_JSON_CACHE = None
+    if include_sort:
+        SORT_JSON_CACHE = None
+
+
+def _invalidate_vehicle_data(int_cds=None):
+    if int_cds is None:
+        VEHICLE_DATA_CACHE.clear()
+    else:
+        for int_cd in int_cds:
+            try:
+                VEHICLE_DATA_CACHE.pop(int(int_cd), None)
+            except (TypeError, ValueError):
+                continue
+    _invalidate_render_cache()
+
+
+def _schedule_models_refresh():
+    global MODEL_REFRESH_PENDING
+    if MODEL_REFRESH_PENDING:
+        return
+    MODEL_REFRESH_PENDING = True
+
+    def refresh_models():
+        global MODEL_REFRESH_PENDING
+        MODEL_REFRESH_PENDING = False
+        if (_sort_mode() != 'default' and
+                CONFIG.get('sorting', {}).get('enabled', True)):
+            _sync_sort_property()
+        for model in list(MODELS):
+            model.refresh()
+
+    BigWorld.callback(0.05, refresh_models)
+
+
+def _vehicle_data_context():
+    account_random_stats = SERVICES.itemsCache.items.getAccountDossier().getRandomStats()
+    vehicle_cuts = account_random_stats.getVehicles() if account_random_stats is not None else {}
+    return account_random_stats, vehicle_cuts, set(SERVICES.itemsCache.items.stats.unlocks)
 
 
 def _field_mod_incomplete(vehicle):
@@ -315,28 +375,13 @@ def _not_ready(vehicle):
         return False
 
 
-def _mastery_for_vehicle(vehicle):
-    try:
-        random_stats = SERVICES.itemsCache.items.getAccountDossier().getRandomStats()
-        return int(random_stats.getMarkOfMasteryForVehicle(vehicle.intCD))
-    except Exception:
-        return 0
-
-
-def _marks_for_vehicle(vehicle):
-    try:
-        dossier = SERVICES.itemsCache.items.getVehicleDossier(vehicle.intCD)
-        return _marks_on_gun(dossier)
-    except Exception:
-        return 0
-
-
-def _research_ready(vehicle):
+def _research_ready(vehicle, unlocked=None):
     """Return True when vehicle XP can unlock an immediately available item."""
     try:
         if vehicle.isElite:
             return False
-        unlocked = set(SERVICES.itemsCache.items.stats.unlocks)
+        if unlocked is None:
+            unlocked = set(SERVICES.itemsCache.items.stats.unlocks)
         vehicle_xp = int(vehicle.xp)
         for _, xp_cost, int_cd, prerequisites in vehicle.getUnlocksDescrs():
             if int_cd in unlocked:
@@ -353,25 +398,7 @@ def _research_ready(vehicle):
 
 
 def _matches(filter_id, vehicle):
-    if filter_id == 'all':
-        return True
-    if filter_id == 'field_mod_incomplete':
-        return _field_mod_incomplete(vehicle)
-    if filter_id == 'crew_not_maxed':
-        return _crew_not_maxed(vehicle)
-    if filter_id == 'non_elite':
-        return not bool(vehicle.isElite)
-    if filter_id == 'reward_special':
-        return _reward_special(vehicle)
-    if filter_id == 'not_ready':
-        return _not_ready(vehicle)
-    if filter_id == 'no_mastery':
-        return _mastery_for_vehicle(vehicle) <= 0
-    if filter_id == 'marks_incomplete':
-        return int(vehicle.level) >= 5 and _marks_for_vehicle(vehicle) < 3
-    if filter_id == 'research_ready':
-        return _research_ready(vehicle)
-    return False
+    return bool(_vehicle_data(vehicle)['matches'].get(filter_id, False))
 
 
 def _marks_on_gun(vehicle_dossier):
@@ -412,6 +439,60 @@ def _build_stats(vehicle, account_random_stats, vehicle_cuts):
     }
 
 
+def _build_vehicle_data(vehicle, context):
+    account_random_stats, vehicle_cuts, unlocked = context
+    stats = _build_stats(vehicle, account_random_stats, vehicle_cuts)
+    field_mod_incomplete = _field_mod_incomplete(vehicle)
+    matches = {
+        'all': True,
+        'field_mod_incomplete': field_mod_incomplete,
+        'crew_not_maxed': _crew_not_maxed(vehicle),
+        'non_elite': not bool(vehicle.isElite),
+        'reward_special': _reward_special(vehicle),
+        'not_ready': _not_ready(vehicle),
+        'no_mastery': stats['mastery'] <= 0,
+        'marks_incomplete': int(vehicle.level) >= 5 and stats['marksOnGun'] < 3,
+        'research_ready': _research_ready(vehicle, unlocked)
+    }
+    return {
+        'matches': matches,
+        'stats': stats,
+        'priority': 0 if bool(getattr(vehicle, 'isFavorite', False)) else (
+            1 if field_mod_incomplete else 2)
+    }
+
+
+def _vehicle_data(vehicle, context=None):
+    int_cd = int(vehicle.intCD)
+    cached = VEHICLE_DATA_CACHE.get(int_cd)
+    if cached is not None:
+        return cached
+    if context is None:
+        context = _vehicle_data_context()
+    cached = _build_vehicle_data(vehicle, context)
+    VEHICLE_DATA_CACHE[int_cd] = cached
+    return cached
+
+
+def _vehicle_data_map(vehicles):
+    current_ids = set(int(int_cd) for int_cd in vehicles)
+    for stale_id in set(VEHICLE_DATA_CACHE).difference(current_ids):
+        VEHICLE_DATA_CACHE.pop(stale_id, None)
+
+    missing = [vehicle for vehicle in vehicles.values()
+               if int(vehicle.intCD) not in VEHICLE_DATA_CACHE]
+    context = _vehicle_data_context() if missing else None
+    started = time.time()
+    for vehicle in missing:
+        _vehicle_data(vehicle, context)
+    if missing and CONFIG.get('debug'):
+        LOGGER.info('Vehicle cache: built %d records in %.1f ms; %d reused',
+                    len(missing), 1000.0 * (time.time() - started),
+                    len(vehicles) - len(missing))
+    return dict((int(vehicle.intCD), VEHICLE_DATA_CACHE[int(vehicle.intCD)])
+                for vehicle in vehicles.values())
+
+
 def _sort_mode():
     mode = RUNTIME_STATE.get('sortMode', CONFIG.get('sorting', {}).get('default', 'default'))
     return mode if mode in SORT_ORDER else 'default'
@@ -423,24 +504,33 @@ def _sort_descending():
 
 
 def _build_sort_json():
+    global SORT_JSON_CACHE
+    if SORT_JSON_CACHE is not None:
+        return SORT_JSON_CACHE
+
     mode = _sort_mode()
-    payload = {'mode': mode, 'descending': _sort_descending(), 'values': {}}
+    payload = {
+        'mode': mode,
+        'descending': False if mode == 'priority' else _sort_descending(),
+        'values': {}
+    }
     if mode == 'default' or not CONFIG.get('sorting', {}).get('enabled', True):
-        return json.dumps(payload, separators=(',', ':'))
+        SORT_JSON_CACHE = json.dumps(payload, separators=(',', ':'))
+        return SORT_JSON_CACHE
 
     vehicles = _inventory_vehicles()
     if mode == 'lastPlayed':
         last_played = RUNTIME_STATE.get('lastPlayed', {})
         payload['values'] = dict((str(int_cd), long(last_played.get(str(int_cd), 0)))
                                  for int_cd in vehicles)
-        return json.dumps(payload, separators=(',', ':'))
-
-    account_random_stats = SERVICES.itemsCache.items.getAccountDossier().getRandomStats()
-    vehicle_cuts = account_random_stats.getVehicles() if account_random_stats is not None else {}
-    for vehicle in vehicles.values():
-        stats = _build_stats(vehicle, account_random_stats, vehicle_cuts)
-        payload['values'][str(vehicle.intCD)] = stats.get(mode, 0)
-    return json.dumps(payload, separators=(',', ':'))
+    else:
+        vehicle_data = _vehicle_data_map(vehicles)
+        for vehicle in vehicles.values():
+            data = vehicle_data[int(vehicle.intCD)]
+            payload['values'][str(vehicle.intCD)] = (
+                data['priority'] if mode == 'priority' else data['stats'].get(mode, 0))
+    SORT_JSON_CACHE = json.dumps(payload, separators=(',', ':'))
+    return SORT_JSON_CACHE
 
 
 def _sync_sort_property():
@@ -460,6 +550,7 @@ def _set_sorting(mode, descending=None):
     if descending is not None:
         RUNTIME_STATE['sortDescending'] = bool(descending)
     _save_runtime()
+    _invalidate_render_cache()
     _sync_sort_property()
     for model in list(MODELS):
         model.refresh()
@@ -531,6 +622,7 @@ def _track_last_played():
         int_cd = vehicle.typeDescriptor.type.compactDescr
         RUNTIME_STATE.setdefault('lastPlayed', {})[str(int_cd)] = long(time.time())
         _save_runtime()
+        _invalidate_render_cache()
         if _sort_mode() == 'lastPlayed':
             _sync_sort_property()
     except Exception:
@@ -541,17 +633,16 @@ def _build_payload():
     global LAST_DATA_SUMMARY
     vehicles = _inventory_vehicles()
     values = list(vehicles.values())
+    vehicle_data = _vehicle_data_map(vehicles)
     enabled_filters = CONFIG.get('filters', {}).get('enabled', list(FILTER_ORDER))
     enabled_filters = [key for key in FILTER_ORDER if key in enabled_filters]
 
-    account_random_stats = SERVICES.itemsCache.items.getAccountDossier().getRandomStats()
-    vehicle_cuts = account_random_stats.getVehicles() if account_random_stats is not None else {}
     stats_config = CONFIG.get('cardStats', {})
     stats_enabled = bool(stats_config.get('enabled', True))
     stats = {}
     if stats_enabled:
         for vehicle in values:
-            stats[str(vehicle.intCD)] = _build_stats(vehicle, account_random_stats, vehicle_cuts)
+            stats[str(vehicle.intCD)] = vehicle_data[int(vehicle.intCD)]['stats']
 
     summary = (len(values), len(stats), sum(1 for value in stats.values() if value.get('battles', 0) > 0))
     if summary != LAST_DATA_SUMMARY:
@@ -560,7 +651,8 @@ def _build_payload():
 
     filters = []
     for filter_id in enabled_filters:
-        count = sum(1 for vehicle in values if _matches(filter_id, vehicle))
+        count = sum(1 for vehicle in values
+                    if vehicle_data[int(vehicle.intCD)]['matches'].get(filter_id, False))
         filters.append({'id': filter_id, 'count': count})
 
     return {
@@ -576,7 +668,8 @@ def _build_payload():
             'options': [key for key in SORT_ORDER
                         if key in CONFIG.get('sorting', {}).get('options', SORT_ORDER)],
             'mode': _sort_mode(),
-            'descending': _sort_descending()
+            'descending': _sort_descending(),
+            'directional': _sort_mode() != 'priority'
         },
         'actionCards': CONFIG.get('actionCards', {}),
         'nativeFeatures': ['premium', 'elite', 'rented', 'daily_bonus', 'battle_pass_available'],
@@ -588,6 +681,14 @@ def _build_payload():
         'trackedLastPlayed': len(RUNTIME_STATE.get('lastPlayed', {})),
         'totalVehicles': len(values)
     }
+
+
+def _build_state_json():
+    global STATE_JSON_CACHE
+    if STATE_JSON_CACHE is None:
+        STATE_JSON_CACHE = json.dumps(
+            _build_payload(), ensure_ascii=False, separators=(',', ':'))
+    return STATE_JSON_CACHE
 
 
 class HangarCarouselPlusModel(ViewModel):
@@ -626,13 +727,13 @@ class HangarCarouselPlusModel(ViewModel):
     def refresh(self):
         try:
             _remove_legacy_playlists()
-            payload = _build_payload()
-            self.setStateJson(json.dumps(payload, ensure_ascii=False, separators=(',', ':')))
+            self.setStateJson(_build_state_json())
             self.setActiveFiltersJson(json.dumps(sorted(ACTIVE_FILTERS), separators=(',', ':')))
         except Exception:
             LOGGER.exception('Unable to refresh Hangar Carousel Plus data')
 
     def __on_refresh(self, *_args, **_kwargs):
+        _invalidate_vehicle_data()
         _refresh_native_vehicle_model()
         self.refresh()
 
@@ -723,12 +824,10 @@ def _patch_vehicle_filter_model():
 
 
 def _build_tooltip_payload(vehicle):
-    account_random_stats = SERVICES.itemsCache.items.getAccountDossier().getRandomStats()
-    vehicle_cuts = account_random_stats.getVehicles() if account_random_stats is not None else {}
     return {
         'version': MOD_VERSION,
         'language': getClientLanguage(),
-        'stats': _build_stats(vehicle, account_random_stats, vehicle_cuts),
+        'stats': _vehicle_data(vehicle)['stats'],
         'statsConfig': CONFIG.get('cardStats', {})
     }
 
@@ -797,6 +896,7 @@ def _patch_vehicle_filters_provider():
             rows = int(self.viewModel.getCarouselRowCount())
             RUNTIME_STATE['carouselRows'] = rows
             _save_runtime()
+            _invalidate_render_cache(include_sort=False)
         if rows != int(self.viewModel.getCarouselRowCount()):
             self._VehicleFiltersDataProvider__rowCount = rows
             self._VehicleFiltersDataProvider__updateCarousel()
@@ -819,6 +919,7 @@ def _patch_vehicle_filters_provider():
             RUNTIME_STATE['carouselRows'] = rows
             RUNTIME_STATE['carouselRowsMode'] = 'manual'
             _save_runtime()
+            _invalidate_render_cache(include_sort=False)
             _sync_carousel_auto_property(False)
             for model in list(MODELS):
                 model.refresh()
@@ -859,8 +960,12 @@ def _patch_vehicle_statistics_presenter():
         return original_update(self, filtered)
 
     def patched_on_update(self, diff):
+        diff = list(diff)
+        _invalidate_vehicle_data(diff)
         if not ACTIVE_FILTERS:
-            return original_on_update(self, diff)
+            result = original_on_update(self, diff)
+            _schedule_models_refresh()
+            return result
 
         included = []
         excluded = []
@@ -879,8 +984,11 @@ def _patch_vehicle_statistics_presenter():
                     if key in statistics:
                         statistics.remove(key)
         if included:
-            return original_on_update(self, included)
-        return None
+            result = original_on_update(self, included)
+        else:
+            result = None
+        _schedule_models_refresh()
+        return result
 
     VehiclesStatisticsPresenter.__init__ = patched_init
     VehiclesStatisticsPresenter._finalize = patched_finalize
@@ -1013,6 +1121,30 @@ SETTINGS_SORT_OPTIONS = {
     'tr': (u'Varsayılan sıra', u'Savaşlar', u'Galibiyet oranı', u'Ortalama hasar', u'Mükemmellik İşaretleri', u'Son oynanan')
 }
 
+SETTINGS_PRIORITY_SORT_OPTIONS = {
+    'bg': u'Основни > полева модификация > стандартно',
+    'cs': u'Hlavní > polní modifikace > výchozí',
+    'da': u'Primære > feltmodifikation > standard',
+    'de': u'Primär > Feldmodifikation > Standard',
+    'el': u'Κύρια > Διαμόρφωση Πεδίου > βασική σειρά',
+    'es': u'Principales > modificación de campo > orden predeterminado',
+    'fi': u'Ensisijaiset > kenttämuokkaus > oletus',
+    'fr': u'Principaux > modification de terrain > ordre par défaut',
+    'hr': u'Primarna > terenska modifikacija > zadano',
+    'hu': u'Elsődleges > harctéri módosítás > alapértelmezett',
+    'it': u'Principali > modifica tecnica > ordine predefinito',
+    'lt': u'Pagrindinės > lauko modifikacija > numatyta tvarka',
+    'lv': u'Galvenie > lauka modifikācija > noklusējums',
+    'nl': u'Primair > veldmodificatie > standaard',
+    'no': u'Primære > feltmodifikasjon > standard',
+    'pl': u'Podstawowe > modyfikacja polowa > domyślnie',
+    'pt': u'Principais > Modificação de Campo > ordem padrão',
+    'ro': u'Principale > modificare de teren > ordine implicită',
+    'sr': u'Primarna > terenska modifikacija > podrazumevano',
+    'sv': u'Primära > fältmodifiering > standard',
+    'tr': u'Birincil > Saha Modifikasyonu > varsayılan'
+}
+
 
 def _settings_language():
     language = (getClientLanguage() or 'en').lower().replace('-', '_')
@@ -1045,13 +1177,19 @@ def _register_settings():
         text = _settings_labels()
         language = _settings_language()
         sort_options = [u'Default', u'Battles', u'Win rate', u'Average damage',
-                        u'Marks of Excellence', u'Last played']
+                        u'Marks of Excellence', u'Last played',
+                        u'Primary > Field Modification > default']
         if language == 'ru':
-            sort_options = [u'Обычная', u'Бои', u'Победы', u'Средний урон', u'Отметки', u'Последний бой']
+            sort_options = [u'Обычная', u'Бои', u'Победы', u'Средний урон',
+                            u'Отметки', u'Последний бой',
+                            u'Основные > полевая модернизация > обычный порядок']
         elif language == 'uk':
-            sort_options = [u'Звичайна', u'Бої', u'Перемоги', u'Середня шкода', u'Відмітки', u'Останній бій']
+            sort_options = [u'Звичайна', u'Бої', u'Перемоги', u'Середня шкода',
+                            u'Відмітки', u'Останній бій',
+                            u'Основні > польова модернізація > звичайний порядок']
         elif language in SETTINGS_SORT_OPTIONS:
             sort_options = list(SETTINGS_SORT_OPTIONS[language])
+            sort_options.append(SETTINGS_PRIORITY_SORT_OPTIONS.get(language, sort_options[-1]))
         rows_value = 0 if _carousel_auto() else (_carousel_rows() or 2)
         column1 = [templates.createLabel(text['filters'], text['native'])]
         for filter_id in FILTER_ORDER:

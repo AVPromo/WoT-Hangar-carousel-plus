@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "enabled": true,
   "filters": {
     "enabled": [
@@ -34,7 +34,8 @@
       "winRate",
       "averageDamage",
       "marksOnGun",
-      "lastPlayed"
+      "lastPlayed",
+      "priority"
     ],
     "default": "default",
     "descending": true

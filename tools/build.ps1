@@ -10,7 +10,7 @@ $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $build = Join-Path $repo 'build'
 $stage = Join-Path $build 'stage'
 $dist = Join-Path $repo 'dist'
-$version = '0.8.5'
+$version = '0.8.7'
 $packageName = "com.rcooler.hangar_carousel_plus_$version.wotmod"
 $packagePath = Join-Path $dist $packageName
 
@@ -40,6 +40,11 @@ if ($pythonText.Contains('StatsRequester') -or
     $pythonText.Contains('onToggleCurrencyLock') -or
     $pythonText.Contains('def _patch_currency_locks')) {
     throw 'HCP must remain carousel-focused and must not patch currencies.'
+}
+if (-not $pythonText.Contains("'priority'") -or
+    -not $pythonText.Contains('VEHICLE_DATA_CACHE') -or
+    -not $pythonText.Contains('def _invalidate_vehicle_data')) {
+    throw 'Priority sorting or the vehicle-data cache is missing.'
 }
 & $Python27 -m py_compile $pythonSource
 if ($LASTEXITCODE -ne 0) {

@@ -879,3 +879,31 @@ for (const [language, values] of Object.entries(HCP_SORT_I18N)) {
     sort_lastPlayed: values[6], ascending: values[7], descending: values[8]
   });
 }
+
+const HCP_PRIORITY_SORT_I18N = {
+  bg: "Основни > полева модификация > стандартно",
+  cs: "Hlavní > polní modifikace > výchozí",
+  da: "Primære > feltmodifikation > standard",
+  de: "Primär > Feldmodifikation > Standard",
+  el: "Κύρια > Διαμόρφωση Πεδίου > βασική σειρά",
+  es: "Principales > modificación de campo > orden predeterminado",
+  fi: "Ensisijaiset > kenttämuokkaus > oletus",
+  fr: "Principaux > modification de terrain > ordre par défaut",
+  hr: "Primarna > terenska modifikacija > zadano",
+  hu: "Elsődleges > harctéri módosítás > alapértelmezett",
+  it: "Principali > modifica tecnica > ordine predefinito",
+  lt: "Pagrindinės > lauko modifikacija > numatyta tvarka",
+  lv: "Galvenie > lauka modifikācija > noklusējums",
+  nl: "Primair > veldmodificatie > standaard",
+  no: "Primære > feltmodifikasjon > standard",
+  pl: "Podstawowe > modyfikacja polowa > domyślnie",
+  pt: "Principais > Modificação de Campo > ordem padrão",
+  ro: "Principale > modificare de teren > ordine implicită",
+  sr: "Primarna > terenska modifikacija > podrazumevano",
+  sv: "Primära > fältmodifiering > standard",
+  tr: "Birincil > Saha Modifikasyonu > varsayılan"
+};
+
+for (const [language, value] of Object.entries(HCP_PRIORITY_SORT_I18N)) {
+  Object.assign(window.HCP_I18N[language], { sort_priority: value });
+}

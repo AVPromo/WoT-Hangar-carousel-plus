@@ -75,6 +75,11 @@ try {
         -not $jsSource.Contains('applyActionCardsVisibility')) {
         throw 'Native sorting controls or action-card visibility support are missing.'
     }
+    if (-not $jsSource.Contains('sort_priority') -or
+        -not $jsSource.Contains("priority: '<svg") -or
+        $jsSource.Contains('setInterval(renderCardStats')) {
+        throw 'Priority sorting is missing or obsolete card-stat polling is still enabled.'
+    }
     if ($jsSource.Contains('CurrencyLock') -or
         $jsSource.Contains('hcp-currency-lock')) {
         throw 'Currency protection must not be included in this carousel mod.'

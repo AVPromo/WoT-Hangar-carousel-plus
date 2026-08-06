@@ -9,7 +9,7 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 - filters for incomplete Field Modification, incompletely trained crews, and non-elite vehicles;
 - reward/special, not-ready, no-Ace, fewer-than-three-Marks, and research-now-available filters;
 - battles, win rate, average damage, mastery, and Marks of Excellence on vehicle cards and in the native hover card;
-- sorting by battles, win rate, average damage, Marks of Excellence, or last played;
+- sorting by battles, win rate, average damage, Marks of Excellence, last played, or the priority chain “primary → incomplete Field Modification → native default order”;
 - one-, two-, three-, and four-row carousel layouts with an automatic mode;
 - optional hiding of the Buy vehicle, Buy slot, and Restore vehicle cells;
 - a settings page through ModsSettingsAPI;
@@ -21,19 +21,19 @@ No account credentials or statistics are sent to an external service.
 
 ## Download and install
 
-[Download the complete Hangar Carousel Plus 0.8.5 bundle](releases/0.8.5/Hangar_Carousel_Plus_0.8.5_complete.zip?raw=1)
+[Download the complete Hangar Carousel Plus 0.8.7 bundle](releases/0.8.7/Hangar_Carousel_Plus_0.8.7_complete.zip?raw=1)
 
 1. Close World of Tanks.
-2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\2.3.1.0\`.
+2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\2.3.1.1\`.
 3. Extract the ZIP directly into the World of Tanks root and allow it to merge the `mods` directory.
 4. Start the game.
 
-The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.0\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.5/com.rcooler.hangar_carousel_plus_0.8.5.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
+The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.1\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.7/com.rcooler.hangar_carousel_plus_0.8.7.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
 
 ## Requirements
 
 - World of Tanks Wargaming client 2.3.1.x;
-- `net.openwg.gameface` 1.1.5 or newer and ModsSettingsAPI, both included in the complete bundle.
+- `net.openwg.gameface` 1.1.6 or newer and ModsSettingsAPI, both included in the complete bundle.
 
 ## Configuration
 

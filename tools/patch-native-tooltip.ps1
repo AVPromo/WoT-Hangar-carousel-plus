@@ -22,7 +22,7 @@ $bundlePackagePath = Join-Path $GameRoot 'res\packages\gui-part4.pkg'
 $cssPackagePath = Join-Path $GameRoot 'res\packages\gui-part2.pkg'
 $bundleEntryPath = 'gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js'
 $cssEntryPath = 'gui/gameface/_dist/production/mono/hangar/vehicle_tooltip/vehicle_tooltip.css'
-$expectedBundleHash = 'B1CBC96E18174947F5CC83E46A5511924DA9D7AEF139DFA8CB75AA79B366DA4E'
+$expectedBundleHash = '66AACCC3D55B62EFC6264359F133D51F04270A8E7E737FE1BB2FFB6461ECC1E4'
 $expectedCssHash = '4D9D45F739F642F5CCD443386722045F319EC873352B159B36BAEA210249D822'
 
 Add-Type -AssemblyName System.IO.Compression

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.7 - 2026-08-06
+
+- Add priority sorting: primary vehicles first, then vehicles with incomplete Field Modification, then the native default order.
+- Keep all seven sort modes and the direction control on one compact row.
+- Cache per-vehicle filter and statistic data so filter toggles no longer reread every dossier several times.
+- Invalidate only changed vehicle cache entries and batch model refreshes after client updates.
+- Replace the 250 ms card-stat polling loop with filtered, throttled DOM observation.
+
+## 0.8.6 - 2026-08-06
+
+- Add compatibility with the Wargaming EU 2.3.1.1 client bundles.
+- Revalidate every native carousel substitution against the updated hangar bundle.
+- Refresh the native vehicle-tooltip checksum for the 2.3.1.1 hotfix.
+- Update the complete release layout and bundled Gameface dependency for 2.3.1.1.
+
 ## 0.8.5 - 2026-07-17
 
 - Replace Gameface-incompatible text sorting glyphs with six dedicated white SVG icons and SVG direction arrows.
