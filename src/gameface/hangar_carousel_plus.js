@@ -28,6 +28,7 @@ const LABELS = {
     sort_winRate: "Win rate",
     sort_averageDamage: "Average damage",
     sort_marksOnGun: "Marks of Excellence",
+    sort_battlePassPoints: "Battle Pass points earned",
     sort_lastPlayed: "Last played (HCP)",
     sort_priority: "Primary > Field Modification > default",
     smart_filters: "HCP smart filters",
@@ -75,6 +76,7 @@ const LABELS = {
     sort_winRate: "Победы",
     sort_averageDamage: "Средний урон",
     sort_marksOnGun: "Отметки",
+    sort_battlePassPoints: "Очки Боевого пропуска",
     sort_lastPlayed: "Последний бой (HCP)",
     sort_priority: "Основные > полевая модернизация > обычный порядок",
     smart_filters: "Умные фильтры HCP",
@@ -122,6 +124,7 @@ const LABELS = {
     sort_winRate: "Перемоги",
     sort_averageDamage: "Середня шкода",
     sort_marksOnGun: "Відмітки",
+    sort_battlePassPoints: "Очки Бойової перепустки",
     sort_lastPlayed: "Останній бій (HCP)",
     sort_priority: "Основні > польова модернізація > звичайний порядок",
     smart_filters: "Розумні фільтри HCP",
@@ -176,6 +179,7 @@ const SORT_ICONS = {
   winRate: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 18 5-5 4 3 7-9M15 7h5v5"/></svg>',
   averageDamage: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 12h6l-1 8 9-13h-6z"/></svg>',
   marksOnGun: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  battlePassPoints: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v12l-7 6-7-6zM12 6l1.4 2.8 3.1.5-2.2 2.1.5 3.1-2.8-1.5-2.8 1.5.5-3.1-2.2-2.1 3.1-.5z"/></svg>',
   lastPlayed: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>',
   priority: '<svg class="hcp-native-sort-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3 1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4zM14 6h7M14 11h7M3 16h18M7 13v6M12 13v6"/></svg>'
 };

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.9 - 2026-08-12
+
+- Add ascending and descending sorting by Battle Pass points earned on each vehicle in the current season.
+- Refresh cached Battle Pass values from the client's vehicle-point and season events.
+- Move user configuration to `mods/configs/RCooLeR/hangar_carousel_plus.json` and runtime state beside it, with automatic migration from the legacy `res_mods/configs` location.
+- Keep the native filter popover height and improve its scrollbar contrast so the additional controls remain discoverable at every carousel size.
+
 ## 0.8.8 - 2026-08-12
 
 - Add compatibility with the Wargaming EU 2.3.1.2 client bundles.

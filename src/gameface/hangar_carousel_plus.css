@@ -7,6 +7,51 @@
   pointer-events: auto;
 }
 
+/* Keep WG's native popover height, but make its otherwise faint scrollbar
+   easy to discover. Selectors are scoped to the vehicle filter ScrollArea. */
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] {
+  width: 9rem !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 2rem rgba(0, 0, 0, 0.95));
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="VerticalBar_track_"] {
+  border-radius: 4rem;
+  background: rgba(8, 9, 11, 0.72);
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="VerticalBar_rail_"] {
+  width: 2rem !important;
+  left: 3rem !important;
+  background: rgba(238, 237, 233, 0.34) !important;
+  opacity: 1 !important;
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="Thumb_base__vertical_"] {
+  width: 7rem !important;
+  left: 1rem !important;
+  border-radius: 4rem;
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="Thumb_background_"] {
+  border-radius: 4rem;
+  background: linear-gradient(90deg, #9f7636 0%, #f2d28f 50%, #a87932 100%) !important;
+  box-shadow: 0 0 4rem rgba(245, 190, 91, 0.72);
+  opacity: 0.95 !important;
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="Thumb_border_"] {
+  border: 1rem solid rgba(255, 232, 179, 0.9) !important;
+  border-radius: 4rem;
+}
+
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="Thumb_base__vertical_"]:hover [class*="Thumb_background_"],
+[class*="FilterPopover_scroll_"] > [class*="VerticalBar_"] [class*="Thumb_base__active_"] [class*="Thumb_background_"] {
+  background: linear-gradient(90deg, #d19a43 0%, #fff0c2 50%, #d19a43 100%) !important;
+  box-shadow: 0 0 7rem rgba(255, 194, 83, 0.95);
+  opacity: 1 !important;
+}
+
 .hcp-native-heading {
   margin: 0 0 5rem;
   color: #8c897f;

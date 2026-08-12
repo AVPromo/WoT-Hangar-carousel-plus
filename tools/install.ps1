@@ -38,15 +38,27 @@ if ($existing) {
 }
 Copy-Item -LiteralPath $PackagePath -Destination $destination
 
-$configDir = Join-Path $GameRoot 'res_mods\configs\hangar_carousel_plus'
-$configPath = Join-Path $configDir 'config.json'
+$configDir = Join-Path $GameRoot 'mods\configs\RCooLeR'
+$configPath = Join-Path $configDir 'hangar_carousel_plus.json'
+$legacyConfigPath = Join-Path $GameRoot 'res_mods\configs\hangar_carousel_plus\config.json'
+$runtimePath = Join-Path $configDir 'hangar_carousel_plus.runtime.json'
+$legacyRuntimePath = Join-Path $GameRoot 'res_mods\configs\hangar_carousel_plus\runtime.json'
 if ($ForceConfig -or -not (Test-Path -LiteralPath $configPath)) {
     New-Item -ItemType Directory -Force -Path $configDir | Out-Null
     if ($ForceConfig -and (Test-Path -LiteralPath $configPath)) {
         New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
-        Copy-Item -LiteralPath $configPath -Destination (Join-Path $backupDir 'config.json')
+        Copy-Item -LiteralPath $configPath -Destination (Join-Path $backupDir 'hangar_carousel_plus.json')
     }
-    Copy-Item -LiteralPath (Join-Path $repo 'config\default.json') -Destination $configPath
+    if (-not $ForceConfig -and (Test-Path -LiteralPath $legacyConfigPath)) {
+        Copy-Item -LiteralPath $legacyConfigPath -Destination $configPath
+    }
+    else {
+        Copy-Item -LiteralPath (Join-Path $repo 'config\default.json') -Destination $configPath
+    }
+}
+if (-not (Test-Path -LiteralPath $runtimePath) -and (Test-Path -LiteralPath $legacyRuntimePath)) {
+    New-Item -ItemType Directory -Force -Path $configDir | Out-Null
+    Copy-Item -LiteralPath $legacyRuntimePath -Destination $runtimePath
 }
 
 $openWg = Get-ChildItem -LiteralPath $modsDir -Recurse -Filter 'net.openwg.gameface_*.wotmod' -ErrorAction SilentlyContinue
@@ -56,6 +68,7 @@ if (-not $openWg) {
 
 Write-Output "Installed: $destination"
 Write-Output "Config: $configPath"
+Write-Output "Runtime: $runtimePath"
 if (Test-Path -LiteralPath $backupDir) {
     Write-Output "Backup: $backupDir"
 }

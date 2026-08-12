@@ -33,7 +33,7 @@ The default game root is declared in `tools/build.ps1`. Override it for another 
 The package is written to:
 
 ```text
-dist\com.rcooler.hangar_carousel_plus_0.8.8.wotmod
+dist\com.rcooler.hangar_carousel_plus_0.8.9.wotmod
 ```
 
 Build and install in one step:
@@ -64,17 +64,17 @@ The Python bridge publishes configuration, localized strings, filter state, vehi
 The repository default is `config/default.json`. The installed user configuration is:
 
 ```text
-<game>\res_mods\configs\hangar_carousel_plus\config.json
+<game>\mods\configs\RCooLeR\hangar_carousel_plus.json
 ```
 
-Sorting direction, last-played timestamps, and carousel row mode are stored in `runtime.json` next to the live configuration. Changes to the configuration schema must preserve or migrate existing user values, because normal installation deliberately does not overwrite this file.
+Sorting direction, last-played timestamps, and carousel row mode are stored in `hangar_carousel_plus.runtime.json` next to the live configuration. Changes to the configuration schema must preserve or migrate existing user values, because normal installation deliberately does not overwrite this file. Version 0.8.9 also reads and migrates the legacy files from `res_mods\configs\hangar_carousel_plus`.
 
 ## Validation
 
 The normal build already invokes the package validator. To validate an existing artifact separately:
 
 ```powershell
-.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.8.wotmod'
+.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.9.wotmod'
 ```
 
 After a client update:

@@ -28,13 +28,13 @@ The native vehicle tooltip gets a child model containing the same configured sta
 
 ## Carousel rows
 
-`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.2 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the locally installed bundle. The build verifies the source SHA and every replacement count. The generated patched bundle is packaged, but no Wargaming source bundle is stored in the repository.
+`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.2 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the locally installed bundle. The build verifies the source SHA and every replacement count. The filter popover deliberately retains its native height because its portal anchor moves with the carousel; HCP scopes a higher-contrast scrollbar style to that popover instead. The generated patched bundle is packaged, but no Wargaming source bundle is stored in the repository.
 
 ## Sorting and last played
 
-The checksum-guarded native carousel hook sorts the final vehicle list without creating playlists. Numeric modes receive cached per-vehicle values from Python. Priority mode assigns three stable buckets—primary vehicles, incomplete Field Modification, and all remaining vehicles—so the client's existing order is preserved inside every bucket. Last-played timestamps remain local to HCP.
+The checksum-guarded native carousel hook sorts the final vehicle list without creating playlists. Numeric modes receive cached per-vehicle values from Python. Battle Pass sorting uses the current season's earned value returned by `IBattlePassController.getVehicleProgression()` and invalidates only affected vehicles when the controller publishes point updates. Priority mode assigns three stable buckets—primary vehicles, incomplete Field Modification, and all remaining vehicles—so the client's existing order is preserved inside every bucket. Last-played timestamps remain local to HCP.
 
-The garage API does not provide a historical last-played value per vehicle. HCP records the vehicle and timestamp on the global real-battle `onAvatarReady` event, skips replay playback, and stores this private local data in `res_mods/configs/hangar_carousel_plus/runtime.json`. Untracked vehicles remain after tracked vehicles for both directions.
+The garage API does not provide a historical last-played value per vehicle. HCP records the vehicle and timestamp on the global real-battle `onAvatarReady` event, skips replay playback, and stores this private local data in `mods/configs/RCooLeR/hangar_carousel_plus.runtime.json`. Untracked vehicles remain after tracked vehicles for both directions.
 
 ## Compatibility boundaries
 

@@ -849,34 +849,35 @@ for (const [language, labels] of Object.entries(HCP_FILTER_I18N)) {
 }
 
 const HCP_SORT_I18N = {
-  bg: ["Сортиране HCP", "Стандартен ред", "Битки", "Победи", "Средни щети", "Отличителни знаци", "Последно играна", "Възходящо", "Низходящо"],
-  cs: ["Řazení HCP", "Výchozí pořadí", "Bitvy", "Vítězství", "Průměrné poškození", "Znaky na dělu", "Naposledy hráno", "Vzestupně", "Sestupně"],
-  da: ["HCP-sortering", "Standardrækkefølge", "Kampe", "Sejrsprocent", "Gennemsnitlig skade", "Mærker på kanonen", "Sidst spillet", "Stigende", "Faldende"],
-  de: ["HCP-Sortierung", "Standardreihenfolge", "Gefechte", "Siegrate", "Durchschnittsschaden", "Erfolgsmarkierungen", "Zuletzt gespielt", "Aufsteigend", "Absteigend"],
-  el: ["Ταξινόμηση HCP", "Βασική σειρά", "Μάχες", "Ποσοστό νικών", "Μέση ζημιά", "Σήματα αριστείας", "Τελευταία χρήση", "Αύξουσα", "Φθίνουσα"],
-  es: ["Orden de HCP", "Orden predeterminado", "Batallas", "Victorias", "Daño medio", "Marcas de excelencia", "Última batalla", "Ascendente", "Descendente"],
-  fi: ["HCP-lajittelu", "Oletusjärjestys", "Taistelut", "Voittoprosentti", "Keskivahinko", "Erinomaisuusmerkit", "Viimeksi pelattu", "Nouseva", "Laskeva"],
-  fr: ["Tri HCP", "Ordre par défaut", "Batailles", "Taux de victoires", "Dégâts moyens", "Marques d'excellence", "Dernière bataille", "Croissant", "Décroissant"],
-  hr: ["HCP razvrstavanje", "Zadani redoslijed", "Bitke", "Postotak pobjeda", "Prosječna šteta", "Oznake izvrsnosti", "Posljednje igrano", "Uzlazno", "Silazno"],
-  hu: ["HCP rendezés", "Alapértelmezett sorrend", "Csaták", "Győzelmi arány", "Átlagsebzés", "Kiválóságjelek", "Utoljára játszott", "Növekvő", "Csökkenő"],
-  it: ["Ordinamento HCP", "Ordine predefinito", "Battaglie", "Percentuale vittorie", "Danno medio", "Marchi d'Eccellenza", "Ultima battaglia", "Crescente", "Decrescente"],
-  lt: ["HCP rikiavimas", "Numatytoji tvarka", "Mūšiai", "Pergalių santykis", "Vidutinė žala", "Meistriškumo žymės", "Vėliausiai žaista", "Didėjančiai", "Mažėjančiai"],
-  lv: ["HCP kārtošana", "Noklusējuma secība", "Kaujas", "Uzvaru attiecība", "Vidējie bojājumi", "Izcilības atzīmes", "Pēdējā kauja", "Augoši", "Dilstoši"],
-  nl: ["HCP-sortering", "Standaardvolgorde", "Gevechten", "Winstpercentage", "Gemiddelde schade", "Uitmuntendheidsmarkeringen", "Laatst gespeeld", "Oplopend", "Aflopend"],
-  no: ["HCP-sortering", "Standardrekkefølge", "Kamper", "Seiersprosent", "Gjennomsnittlig skade", "Utmerkelsesmerker", "Sist spilt", "Stigende", "Synkende"],
-  pl: ["Sortowanie HCP", "Kolejność domyślna", "Bitwy", "Procent zwycięstw", "Średnie uszkodzenia", "Odznaki biegłości", "Ostatnia bitwa", "Rosnąco", "Malejąco"],
-  pt: ["Ordenação HCP", "Ordem padrão", "Batalhas", "Taxa de vitórias", "Dano médio", "Marcas de Excelência", "Última batalha", "Crescente", "Decrescente"],
-  ro: ["Sortare HCP", "Ordine implicită", "Bătălii", "Rata victoriilor", "Daune medii", "Însemne de excelență", "Ultima bătălie", "Crescător", "Descrescător"],
-  sr: ["HCP sortiranje", "Podrazumevani redosled", "Bitke", "Procenat pobeda", "Prosečna šteta", "Oznake izuzetnosti", "Poslednje igrano", "Rastuće", "Opadajuće"],
-  sv: ["HCP-sortering", "Standardordning", "Strider", "Segerfrekvens", "Genomsnittlig skada", "Skicklighetsmärken", "Senast spelad", "Stigande", "Fallande"],
-  tr: ["HCP sıralaması", "Varsayılan sıra", "Savaşlar", "Galibiyet oranı", "Ortalama hasar", "Mükemmellik İşaretleri", "Son oynanan", "Artan", "Azalan"]
+  bg: ["Сортиране HCP", "Стандартен ред", "Битки", "Победи", "Средни щети", "Отличителни знаци", "Точки за Бойния пропуск", "Последно играна", "Възходящо", "Низходящо"],
+  cs: ["Řazení HCP", "Výchozí pořadí", "Bitvy", "Vítězství", "Průměrné poškození", "Znaky na dělu", "Body Battle Passu", "Naposledy hráno", "Vzestupně", "Sestupně"],
+  da: ["HCP-sortering", "Standardrækkefølge", "Kampe", "Sejrsprocent", "Gennemsnitlig skade", "Mærker på kanonen", "Battle Pass-point", "Sidst spillet", "Stigende", "Faldende"],
+  de: ["HCP-Sortierung", "Standardreihenfolge", "Gefechte", "Siegrate", "Durchschnittsschaden", "Erfolgsmarkierungen", "Battle-Pass-Punkte", "Zuletzt gespielt", "Aufsteigend", "Absteigend"],
+  el: ["Ταξινόμηση HCP", "Βασική σειρά", "Μάχες", "Ποσοστό νικών", "Μέση ζημιά", "Σήματα αριστείας", "Πόντοι Battle Pass", "Τελευταία χρήση", "Αύξουσα", "Φθίνουσα"],
+  es: ["Orden de HCP", "Orden predeterminado", "Batallas", "Victorias", "Daño medio", "Marcas de excelencia", "Puntos del Pase de Batalla", "Última batalla", "Ascendente", "Descendente"],
+  fi: ["HCP-lajittelu", "Oletusjärjestys", "Taistelut", "Voittoprosentti", "Keskivahinko", "Erinomaisuusmerkit", "Taistelupassin pisteet", "Viimeksi pelattu", "Nouseva", "Laskeva"],
+  fr: ["Tri HCP", "Ordre par défaut", "Batailles", "Taux de victoires", "Dégâts moyens", "Marques d'excellence", "Points du Passe de combat", "Dernière bataille", "Croissant", "Décroissant"],
+  hr: ["HCP razvrstavanje", "Zadani redoslijed", "Bitke", "Postotak pobjeda", "Prosječna šteta", "Oznake izvrsnosti", "Bodovi Bojne propusnice", "Posljednje igrano", "Uzlazno", "Silazno"],
+  hu: ["HCP rendezés", "Alapértelmezett sorrend", "Csaták", "Győzelmi arány", "Átlagsebzés", "Kiválóságjelek", "Csatabelépő-pontok", "Utoljára játszott", "Növekvő", "Csökkenő"],
+  it: ["Ordinamento HCP", "Ordine predefinito", "Battaglie", "Percentuale vittorie", "Danno medio", "Marchi d'Eccellenza", "Punti Pass di Battaglia", "Ultima battaglia", "Crescente", "Decrescente"],
+  lt: ["HCP rikiavimas", "Numatytoji tvarka", "Mūšiai", "Pergalių santykis", "Vidutinė žala", "Meistriškumo žymės", "Kovos paso taškai", "Vėliausiai žaista", "Didėjančiai", "Mažėjančiai"],
+  lv: ["HCP kārtošana", "Noklusējuma secība", "Kaujas", "Uzvaru attiecība", "Vidējie bojājumi", "Izcilības atzīmes", "Kaujas caurlaides punkti", "Pēdējā kauja", "Augoši", "Dilstoši"],
+  nl: ["HCP-sortering", "Standaardvolgorde", "Gevechten", "Winstpercentage", "Gemiddelde schade", "Uitmuntendheidsmarkeringen", "Battle Pass-punten", "Laatst gespeeld", "Oplopend", "Aflopend"],
+  no: ["HCP-sortering", "Standardrekkefølge", "Kamper", "Seiersprosent", "Gjennomsnittlig skade", "Utmerkelsesmerker", "Battle Pass-poeng", "Sist spilt", "Stigende", "Synkende"],
+  pl: ["Sortowanie HCP", "Kolejność domyślna", "Bitwy", "Procent zwycięstw", "Średnie uszkodzenia", "Odznaki biegłości", "Punkty Przepustki Bitewnej", "Ostatnia bitwa", "Rosnąco", "Malejąco"],
+  pt: ["Ordenação HCP", "Ordem padrão", "Batalhas", "Taxa de vitórias", "Dano médio", "Marcas de Excelência", "Pontos do Passe de Batalha", "Última batalha", "Crescente", "Decrescente"],
+  ro: ["Sortare HCP", "Ordine implicită", "Bătălii", "Rata victoriilor", "Daune medii", "Însemne de excelență", "Puncte Battle Pass", "Ultima bătălie", "Crescător", "Descrescător"],
+  sr: ["HCP sortiranje", "Podrazumevani redosled", "Bitke", "Procenat pobeda", "Prosečna šteta", "Oznake izuzetnosti", "Poeni Borbene propusnice", "Poslednje igrano", "Rastuće", "Opadajuće"],
+  sv: ["HCP-sortering", "Standardordning", "Strider", "Segerfrekvens", "Genomsnittlig skada", "Skicklighetsmärken", "Battle Pass-poäng", "Senast spelad", "Stigande", "Fallande"],
+  tr: ["HCP sıralaması", "Varsayılan sıra", "Savaşlar", "Galibiyet oranı", "Ortalama hasar", "Mükemmellik İşaretleri", "Savaş Kartı Puanları", "Son oynanan", "Artan", "Azalan"]
 };
 
 for (const [language, values] of Object.entries(HCP_SORT_I18N)) {
   Object.assign(window.HCP_I18N[language], {
     sorting: values[0], sort_default: values[1], sort_battles: values[2],
     sort_winRate: values[3], sort_averageDamage: values[4], sort_marksOnGun: values[5],
-    sort_lastPlayed: values[6], ascending: values[7], descending: values[8]
+    sort_battlePassPoints: values[6], sort_lastPlayed: values[7],
+    ascending: values[8], descending: values[9]
   });
 }
 

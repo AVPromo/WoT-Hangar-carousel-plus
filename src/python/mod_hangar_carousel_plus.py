@@ -33,10 +33,12 @@ from skeletons.gui.shared import IItemsCache
 
 
 MOD_ID = 'hangar_carousel_plus'
-MOD_VERSION = '0.8.8'
+MOD_VERSION = '0.8.9'
 PLAYLIST_ID_PREFIX = 'rcooler_hcp_'
-CONFIG_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'config.json')
-RUNTIME_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'runtime.json')
+CONFIG_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.json')
+RUNTIME_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.runtime.json')
+LEGACY_CONFIG_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'config.json')
+LEGACY_RUNTIME_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'runtime.json')
 JS_URL = 'coui://gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_carousel_plus.js'
 I18N_URL = 'coui://gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_carousel_plus.i18n.js'
 CSS_URL = 'coui://gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_carousel_plus.css'
@@ -46,7 +48,7 @@ TOOLTIP_CSS_URL = 'coui://gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_
 LOGGER = logging.getLogger('HangarCarouselPlus')
 
 DEFAULT_CONFIG = {
-    'schemaVersion': 5,
+    'schemaVersion': 6,
     'enabled': True,
     'filters': {
         'enabled': [
@@ -65,7 +67,7 @@ DEFAULT_CONFIG = {
         'enabled': True,
         'options': [
             'default', 'battles', 'winRate', 'averageDamage', 'marksOnGun',
-            'lastPlayed', 'priority'
+            'battlePassPoints', 'lastPlayed', 'priority'
         ],
         'default': 'default',
         'descending': True
@@ -85,7 +87,7 @@ FILTER_ORDER = (
 )
 SORT_ORDER = (
     'default', 'battles', 'winRate', 'averageDamage', 'marksOnGun',
-    'lastPlayed', 'priority'
+    'battlePassPoints', 'lastPlayed', 'priority'
 )
 RUNTIME_DEFAULT = {
     'lastPlayed': {},
@@ -115,6 +117,7 @@ VEHICLE_DATA_CACHE = {}
 STATE_JSON_CACHE = None
 SORT_JSON_CACHE = None
 MODEL_REFRESH_PENDING = False
+BATTLE_PASS_EVENTS_REGISTERED = False
 
 
 def _is_hcp_playlist_id(value):
@@ -156,35 +159,51 @@ def _migrate_config(loaded):
         if 'priority' not in options:
             options.append('priority')
         sorting['options'] = options
-    loaded['schemaVersion'] = 5
+    if int(loaded.get('schemaVersion', 5)) < 6:
+        sorting = loaded.setdefault('sorting', {})
+        options = list(sorting.get('options', DEFAULT_CONFIG['sorting']['options']))
+        if 'battlePassPoints' not in options:
+            insert_at = options.index('lastPlayed') if 'lastPlayed' in options else len(options)
+            options.insert(insert_at, 'battlePassPoints')
+        sorting['options'] = options
+    loaded['schemaVersion'] = 6
     return loaded
 
 
 def _load_config():
-    try:
-        with io.open(CONFIG_PATH, 'r', encoding='utf-8-sig') as config_file:
-            loaded = json.load(config_file)
-        if not isinstance(loaded, dict):
-            raise ValueError('root value must be an object')
-        return _deep_merge(DEFAULT_CONFIG, _migrate_config(loaded))
-    except IOError:
-        LOGGER.info('No user config at %s; using defaults', CONFIG_PATH)
-    except Exception:
-        LOGGER.exception('Invalid config at %s; using defaults', CONFIG_PATH)
-    return _deep_merge(DEFAULT_CONFIG, {})
+    for path in (CONFIG_PATH, LEGACY_CONFIG_PATH):
+        try:
+            with io.open(path, 'r', encoding='utf-8-sig') as config_file:
+                loaded = json.load(config_file)
+            if not isinstance(loaded, dict):
+                raise ValueError('root value must be an object')
+            original_schema = int(loaded.get('schemaVersion', 1))
+            if path == LEGACY_CONFIG_PATH:
+                LOGGER.info('Migrating user configuration from %s to %s', path, CONFIG_PATH)
+            return (_deep_merge(DEFAULT_CONFIG, _migrate_config(loaded)), path,
+                    path == LEGACY_CONFIG_PATH or original_schema < DEFAULT_CONFIG['schemaVersion'])
+        except IOError:
+            continue
+        except Exception:
+            LOGGER.exception('Invalid config at %s; trying fallback', path)
+    LOGGER.info('No user config found; using defaults at %s', CONFIG_PATH)
+    return _deep_merge(DEFAULT_CONFIG, {}), None, True
 
 
 def _load_runtime():
-    try:
-        with io.open(RUNTIME_PATH, 'r', encoding='utf-8-sig') as runtime_file:
-            loaded = json.load(runtime_file)
-        if isinstance(loaded, dict):
-            return _deep_merge(RUNTIME_DEFAULT, loaded)
-    except IOError:
-        pass
-    except Exception:
-        LOGGER.exception('Invalid runtime state at %s; using defaults', RUNTIME_PATH)
-    return _deep_merge(RUNTIME_DEFAULT, {})
+    for path in (RUNTIME_PATH, LEGACY_RUNTIME_PATH):
+        try:
+            with io.open(path, 'r', encoding='utf-8-sig') as runtime_file:
+                loaded = json.load(runtime_file)
+            if isinstance(loaded, dict):
+                if path == LEGACY_RUNTIME_PATH:
+                    LOGGER.info('Migrating runtime state from %s to %s', path, RUNTIME_PATH)
+                return _deep_merge(RUNTIME_DEFAULT, loaded), path
+        except IOError:
+            continue
+        except Exception:
+            LOGGER.exception('Invalid runtime state at %s; trying fallback', path)
+    return _deep_merge(RUNTIME_DEFAULT, {}), None
 
 
 def _save_config():
@@ -216,8 +235,12 @@ def _save_runtime():
         LOGGER.exception('Unable to save runtime state at %s', RUNTIME_PATH)
 
 
-CONFIG = _load_config()
-RUNTIME_STATE = _load_runtime()
+CONFIG, CONFIG_SOURCE_PATH, CONFIG_NEEDS_SAVE = _load_config()
+RUNTIME_STATE, RUNTIME_SOURCE_PATH = _load_runtime()
+if CONFIG_NEEDS_SAVE:
+    _save_config()
+if RUNTIME_SOURCE_PATH != RUNTIME_PATH:
+    _save_runtime()
 ACTIVE_FILTERS = set(filter_id for filter_id in RUNTIME_STATE.get('activeFilters', [])
                      if filter_id in FILTER_ORDER and filter_id != 'all')
 
@@ -397,6 +420,17 @@ def _research_ready(vehicle, unlocked=None):
         return False
 
 
+def _battle_pass_progress(vehicle):
+    """Return the current seasonal Battle Pass points and vehicle cap."""
+    try:
+        points, limit = SERVICES.battlePass.getVehicleProgression(vehicle.intCD)
+        return int(points), int(limit)
+    except Exception:
+        if CONFIG.get('debug'):
+            LOGGER.exception('Battle Pass progression check failed for %s', vehicle.intCD)
+        return 0, 0
+
+
 def _matches(filter_id, vehicle):
     return bool(_vehicle_data(vehicle)['matches'].get(filter_id, False))
 
@@ -443,6 +477,7 @@ def _build_vehicle_data(vehicle, context):
     account_random_stats, vehicle_cuts, unlocked = context
     stats = _build_stats(vehicle, account_random_stats, vehicle_cuts)
     field_mod_incomplete = _field_mod_incomplete(vehicle)
+    battle_pass_points, battle_pass_limit = _battle_pass_progress(vehicle)
     matches = {
         'all': True,
         'field_mod_incomplete': field_mod_incomplete,
@@ -457,6 +492,8 @@ def _build_vehicle_data(vehicle, context):
     return {
         'matches': matches,
         'stats': stats,
+        'battlePassPoints': battle_pass_points,
+        'battlePassLimit': battle_pass_limit,
         'priority': 0 if bool(getattr(vehicle, 'isFavorite', False)) else (
             1 if field_mod_incomplete else 2)
     }
@@ -528,7 +565,9 @@ def _build_sort_json():
         for vehicle in vehicles.values():
             data = vehicle_data[int(vehicle.intCD)]
             payload['values'][str(vehicle.intCD)] = (
-                data['priority'] if mode == 'priority' else data['stats'].get(mode, 0))
+                data['priority'] if mode == 'priority' else (
+                    data['battlePassPoints'] if mode == 'battlePassPoints' else
+                    data['stats'].get(mode, 0)))
     SORT_JSON_CACHE = json.dumps(payload, separators=(',', ':'))
     return SORT_JSON_CACHE
 
@@ -627,6 +666,31 @@ def _track_last_played():
             _sync_sort_property()
     except Exception:
         LOGGER.exception('Unable to track the last-played vehicle')
+
+
+def _on_battle_pass_vehicle_points_updated(vehicle_points=None, *_args, **_kwargs):
+    try:
+        int_cds = vehicle_points.keys() if isinstance(vehicle_points, dict) else None
+        _invalidate_vehicle_data(int_cds)
+        _schedule_models_refresh()
+    except Exception:
+        LOGGER.exception('Unable to refresh Battle Pass vehicle points')
+
+
+def _on_battle_pass_state_updated(*_args, **_kwargs):
+    _invalidate_vehicle_data()
+    _schedule_models_refresh()
+
+
+def _register_battle_pass_events():
+    global BATTLE_PASS_EVENTS_REGISTERED
+    if BATTLE_PASS_EVENTS_REGISTERED:
+        return
+    SERVICES.battlePass.onVehiclesPointsUpdated += _on_battle_pass_vehicle_points_updated
+    SERVICES.battlePass.onSeasonStateChanged += _on_battle_pass_state_updated
+    SERVICES.battlePass.onBattlePassSettingsChange += _on_battle_pass_state_updated
+    BATTLE_PASS_EVENTS_REGISTERED = True
+    LOGGER.info('Battle Pass vehicle-point updates registered')
 
 
 def _build_payload():
@@ -1145,6 +1209,20 @@ SETTINGS_PRIORITY_SORT_OPTIONS = {
     'tr': u'Birincil > Saha Modifikasyonu > varsayılan'
 }
 
+SETTINGS_BATTLE_PASS_SORT_OPTIONS = {
+    'bg': u'Точки за Бойния пропуск', 'cs': u'Body Battle Passu',
+    'da': u'Battle Pass-point', 'de': u'Battle-Pass-Punkte',
+    'el': u'Πόντοι Battle Pass', 'es': u'Puntos del Pase de Batalla',
+    'fi': u'Taistelupassin pisteet', 'fr': u'Points du Passe de combat',
+    'hr': u'Bodovi Bojne propusnice', 'hu': u'Csatabelépő-pontok',
+    'it': u'Punti Pass di Battaglia', 'lt': u'Kovos paso taškai',
+    'lv': u'Kaujas caurlaides punkti', 'nl': u'Battle Pass-punten',
+    'no': u'Battle Pass-poeng', 'pl': u'Punkty Przepustki Bitewnej',
+    'pt': u'Pontos do Passe de Batalha', 'ro': u'Puncte Battle Pass',
+    'sr': u'Poeni Borbene propusnice', 'sv': u'Battle Pass-poäng',
+    'tr': u'Savaş Kartı Puanları'
+}
+
 
 def _settings_language():
     language = (getClientLanguage() or 'en').lower().replace('-', '_')
@@ -1177,18 +1255,20 @@ def _register_settings():
         text = _settings_labels()
         language = _settings_language()
         sort_options = [u'Default', u'Battles', u'Win rate', u'Average damage',
-                        u'Marks of Excellence', u'Last played',
+                        u'Marks of Excellence', u'Battle Pass points', u'Last played',
                         u'Primary > Field Modification > default']
         if language == 'ru':
             sort_options = [u'Обычная', u'Бои', u'Победы', u'Средний урон',
-                            u'Отметки', u'Последний бой',
+                            u'Отметки', u'Очки Боевого пропуска', u'Последний бой',
                             u'Основные > полевая модернизация > обычный порядок']
         elif language == 'uk':
             sort_options = [u'Звичайна', u'Бої', u'Перемоги', u'Середня шкода',
-                            u'Відмітки', u'Останній бій',
+                            u'Відмітки', u'Очки Бойової перепустки', u'Останній бій',
                             u'Основні > польова модернізація > звичайний порядок']
         elif language in SETTINGS_SORT_OPTIONS:
             sort_options = list(SETTINGS_SORT_OPTIONS[language])
+            sort_options.insert(5, SETTINGS_BATTLE_PASS_SORT_OPTIONS.get(
+                language, u'Battle Pass points'))
             sort_options.append(SETTINGS_PRIORITY_SORT_OPTIONS.get(language, sort_options[-1]))
         rows_value = 0 if _carousel_auto() else (_carousel_rows() or 2)
         column1 = [templates.createLabel(text['filters'], text['native'])]
@@ -1289,6 +1369,7 @@ if CONFIG.get('enabled', True):
         _patch_vehicle_tooltip()
         _patch_vehicle_statistics_presenter()
         _patch_legacy_playlist_cleanup()
+        _register_battle_pass_events()
         g_playerEvents.onAvatarReady += _track_last_played
         LOGGER.info('Hangar Carousel Plus %s loaded', MOD_VERSION)
     except Exception:

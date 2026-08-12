@@ -9,7 +9,7 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 - filters for incomplete Field Modification, incompletely trained crews, and non-elite vehicles;
 - reward/special, not-ready, no-Ace, fewer-than-three-Marks, and research-now-available filters;
 - battles, win rate, average damage, mastery, and Marks of Excellence on vehicle cards and in the native hover card;
-- sorting by battles, win rate, average damage, Marks of Excellence, last played, or the priority chain “primary → incomplete Field Modification → native default order”;
+- sorting by battles, win rate, average damage, Marks of Excellence, Battle Pass points, last played, or the priority chain “primary → incomplete Field Modification → native default order”;
 - one-, two-, three-, and four-row carousel layouts with an automatic mode;
 - optional hiding of the Buy vehicle, Buy slot, and Restore vehicle cells;
 - a settings page through ModsSettingsAPI;
@@ -21,14 +21,14 @@ No account credentials or statistics are sent to an external service.
 
 ## Download and install
 
-[Download the complete Hangar Carousel Plus 0.8.8 bundle](releases/0.8.8/Hangar_Carousel_Plus_0.8.8_complete.zip?raw=1)
+[Download the complete Hangar Carousel Plus 0.8.9 bundle](releases/0.8.9/Hangar_Carousel_Plus_0.8.9_complete.zip?raw=1)
 
 1. Close World of Tanks.
 2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\2.3.1.2\`.
 3. Extract the ZIP directly into the World of Tanks root and allow it to merge the `mods` directory.
 4. Start the game.
 
-The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.2\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.8/com.rcooler.hangar_carousel_plus_0.8.8.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
+The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.2\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.9/com.rcooler.hangar_carousel_plus_0.8.9.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
 
 ## Requirements
 
@@ -40,12 +40,14 @@ The bundle already contains HCP and all required dependencies in the standard `m
 The active configuration is stored at:
 
 ```text
-<game>\res_mods\configs\hangar_carousel_plus\config.json
+<game>\mods\configs\RCooLeR\hangar_carousel_plus.json
 ```
 
 Use the ModsSettingsAPI page or edit `filters.enabled`, `cardStats`, `sorting`, and `actionCards`.
 
-Sorting direction, last-played timestamps, and carousel row mode are stored separately in `runtime.json`.
+Sorting direction, last-played timestamps, and carousel row mode are stored in `hangar_carousel_plus.runtime.json` beside the configuration. The old files under `res_mods\configs\hangar_carousel_plus` are migrated automatically on first launch.
+
+The standard filter popover retains the client's native height. For easier access to the additional controls, the mod makes its scrollbar more visible.
 
 Automatic row mode uses the final vehicle count after native and HCP filters:
 
