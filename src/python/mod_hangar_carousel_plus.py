@@ -33,7 +33,7 @@ from skeletons.gui.shared import IItemsCache
 
 
 MOD_ID = 'hangar_carousel_plus'
-MOD_VERSION = '0.8.7'
+MOD_VERSION = '0.8.8'
 PLAYLIST_ID_PREFIX = 'rcooler_hcp_'
 CONFIG_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'config.json')
 RUNTIME_PATH = os.path.join('res_mods', 'configs', MOD_ID, 'runtime.json')

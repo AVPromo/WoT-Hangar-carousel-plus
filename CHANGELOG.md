@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.8 - 2026-08-12
+
+- Add compatibility with the Wargaming EU 2.3.1.2 client bundles.
+- Revalidate all native carousel substitutions against the updated hangar bundle.
+- Refresh the native vehicle-tooltip checksum for the 2.3.1.2 hotfix.
+
 ## 0.8.7 - 2026-08-06
 
 - Add priority sorting: primary vehicles first, then vehicles with incomplete Field Modification, then the native default order.

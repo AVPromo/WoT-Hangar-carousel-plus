@@ -28,7 +28,7 @@ The native vehicle tooltip gets a child model containing the same configured sta
 
 ## Carousel rows
 
-`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.1 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the locally installed bundle. The build verifies the source SHA and every replacement count. The generated patched bundle is packaged, but no Wargaming source bundle is stored in the repository.
+`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.2 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the locally installed bundle. The build verifies the source SHA and every replacement count. The generated patched bundle is packaged, but no Wargaming source bundle is stored in the repository.
 
 ## Sorting and last played
 
