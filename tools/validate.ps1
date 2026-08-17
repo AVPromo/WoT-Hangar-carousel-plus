@@ -10,6 +10,13 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [IO.Compression.ZipFile]::OpenRead($PackagePath)
 try {
+    $eventNativeBundles = @(
+        'res/comp7_light/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
+        'res/comp7/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
+        'res/frontline/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
+        'res/fun_random/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
+        'res/last_stand/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js'
+    )
     $required = @(
         'meta.xml',
         'res/scripts/client/gui/mods/mod_hangar_carousel_plus.pyc',
@@ -21,7 +28,7 @@ try {
         'res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js',
         'res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js',
         'res/gui/gameface/_dist/production/mono/hangar/vehicle_tooltip/vehicle_tooltip.css'
-    )
+    ) + $eventNativeBundles
     $names = @($zip.Entries | ForEach-Object FullName)
     foreach ($entry in $required) {
         if ($entry -notin $names) {
@@ -84,6 +91,10 @@ try {
         $jsSource.Contains('hcp-currency-lock')) {
         throw 'Currency protection must not be included in this carousel mod.'
     }
+    if ($jsSource.Contains('console.warn') -or
+        -not $jsSource.Contains('function debugLog(message)')) {
+        throw 'Routine Gameface diagnostics must be debug-gated and must not use warnings.'
+    }
 
     $nativeBundle = $zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js')
     $nativeStream = $nativeBundle.Open()
@@ -116,6 +127,46 @@ try {
         throw 'Native carousel bundle does not contain HCP sorting support.'
     }
 
+    foreach ($eventBundlePath in $eventNativeBundles) {
+        $eventBundle = $zip.GetEntry($eventBundlePath)
+        $eventStream = $eventBundle.Open()
+        $eventReader = New-Object IO.StreamReader($eventStream, [Text.Encoding]::UTF8)
+        try {
+            $eventSource = $eventReader.ReadToEnd()
+        }
+        finally {
+            $eventReader.Dispose()
+            $eventStream.Dispose()
+        }
+        if (-not [regex]::IsMatch(
+                $eventSource,
+                't\+=(?<rows>[A-Za-z_$][\w$]*)\)e\.push\((?<source>[A-Za-z_$][\w$]*)\.slice\(t,t\+\k<rows>\)\);const a=e\.at\(-1\);if\(a\)for\(;a\.length<\k<rows>;\)a\.push')) {
+            throw "Event hangar bundle does not contain the generic row chunker: $eventBundlePath"
+        }
+        if ($eventSource.Contains('totalElements:2===')) {
+            throw "Event hangar bundle still contains a two-row-only renderer: $eventBundlePath"
+        }
+        if (-not [regex]::IsMatch(
+                $eventSource,
+                'className:[A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?,1<(?<rows>[A-Za-z_$][\w$]*)&&[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?,3===\k<rows>&&"hcp-native-carousel--3",4===\k<rows>&&"hcp-native-carousel--4"\)')) {
+            throw "Event hangar bundle does not expose extended height classes: $eventBundlePath"
+        }
+        if ($eventBundlePath.StartsWith('res/last_stand/') -and
+            (-not $eventSource.Contains('HangarApp_carousel_bc4dc752') -or
+             -not $eventSource.Contains('HangarApp_carousel__double_5f5d7e60'))) {
+            throw 'Last Stand bundle is not using its expected HangarApp carousel wrapper.'
+        }
+        if (-not $eventSource.Contains('hcpAmount<=8?1:hcpAmount<=16?2:hcpAmount<=24?3:4') -or
+            -not $eventSource.Contains('hcpCarouselAuto') -or
+            -not $eventSource.Contains('hcpAuto:!0')) {
+            throw "Event hangar bundle does not contain automatic row selection: $eventBundlePath"
+        }
+        if (-not $eventSource.Contains('hcpSortJson') -or
+            -not $eventSource.Contains('const hcp=')) {
+            throw "Event hangar bundle does not contain HCP sorting support: $eventBundlePath"
+        }
+    }
+
     $tooltipBundle = $zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js')
     $tooltipStream = $tooltipBundle.Open()
     $tooltipReader = New-Object IO.StreamReader($tooltipStream, [Text.Encoding]::UTF8)
@@ -126,8 +177,13 @@ try {
         $tooltipReader.Dispose()
         $tooltipStream.Dispose()
     }
-    if (-not $tooltipSource.Contains('[HangarCarouselPlusTooltip] script loaded')) {
-        throw 'Native vehicle tooltip bundle does not contain the HCP renderer.'
+    if ($tooltipSource.Contains('console.warn') -or
+        $tooltipSource.Contains('[HangarCarouselPlusTooltip]')) {
+        throw 'Routine tooltip lifecycle diagnostics must remain disabled.'
+    }
+    if ($tooltipSource.Contains('setInterval(hcpTooltipRender') -or
+        -not $tooltipSource.Contains('setInterval(hcpTooltipSyncModel, 1000)')) {
+        throw 'Tooltip renderer must use mutation-driven rendering with one low-frequency model-sync fallback.'
     }
 
     $tooltipCss = $zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/vehicle_tooltip/vehicle_tooltip.css')
@@ -174,6 +230,11 @@ try {
     }
     if ($cssSource.Contains('-webkit-text-fill-color')) {
         throw 'Unsupported Gameface text-fill style found.'
+    }
+    if ($cssSource.Contains(':not(') -or
+        $cssSource.Contains(':disabled') -or
+        $cssSource.Contains('white-space: pre-line')) {
+        throw 'Unsupported Gameface selector or white-space mode found.'
     }
     if ($cssSource.Contains('hcp-currency-lock')) {
         throw 'Currency protection styles must not be included in this carousel mod.'

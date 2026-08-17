@@ -10,7 +10,7 @@ The mod currently targets the Wargaming EU 2.3.1.x client and provides:
 - reward/special, not-ready, no-Ace, fewer-than-three-Marks, and research-now-available filters;
 - battles, win rate, average damage, mastery, and Marks of Excellence on vehicle cards and in the native hover card;
 - sorting by battles, win rate, average damage, Marks of Excellence, Battle Pass points, last played, or the priority chain “primary → incomplete Field Modification → native default order”;
-- one-, two-, three-, and four-row carousel layouts with an automatic mode;
+- one-, two-, three-, and four-row carousel layouts with automatic mode in the standard hangar and compatible Comp7, Comp7 Light, Frontline, Fun Random, and Last Stand hangars;
 - optional hiding of the Buy vehicle, Buy slot, and Restore vehicle cells;
 - a settings page through ModsSettingsAPI;
 - localization for all 24 EU client languages.

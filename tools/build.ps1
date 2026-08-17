@@ -10,7 +10,11 @@ $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $build = Join-Path $repo 'build'
 $stage = Join-Path $build 'stage'
 $dist = Join-Path $repo 'dist'
-$version = '0.8.9'
+[xml]$meta = Get-Content -LiteralPath (Join-Path $repo 'meta.xml') -Raw
+$version = [string]$meta.DocumentElement.version
+if ([string]::IsNullOrWhiteSpace($version)) {
+    throw 'The mod version is missing from meta.xml.'
+}
 $packageName = "com.rcooler.hangar_carousel_plus_$version.wotmod"
 $packagePath = Join-Path $dist $packageName
 
@@ -33,6 +37,9 @@ New-Item -ItemType Directory -Force -Path `
 
 $pythonSource = Join-Path $repo 'src\python\mod_hangar_carousel_plus.py'
 $pythonText = Get-Content -LiteralPath $pythonSource -Raw
+if (-not $pythonText.Contains("MOD_VERSION = '$version'")) {
+    throw "Python MOD_VERSION does not match meta.xml version $version."
+}
 if ($pythonText.Contains('.createPlaylist(')) {
     throw 'HCP filters must not create dynamic vehicle playlists.'
 }
@@ -69,6 +76,9 @@ Copy-Item -LiteralPath (Join-Path $repo 'src\gameface\hangar_carousel_plus.toolt
 & (Join-Path $PSScriptRoot 'patch-native-carousel.ps1') `
     -GameRoot $GameRoot `
     -OutputPath (Join-Path $stage 'res\gui\gameface\_dist\production\mono\hangar\views\main\main.html\bundle.js')
+& (Join-Path $PSScriptRoot 'patch-native-event-carousels.ps1') `
+    -GameRoot $GameRoot `
+    -OutputRoot (Join-Path $stage 'res')
 & (Join-Path $PSScriptRoot 'patch-native-tooltip.ps1') `
     -GameRoot $GameRoot `
     -BundleOutputPath (Join-Path $stage 'res\gui\gameface\_dist\production\mono\hangar\views\vehicle_tooltip\vehicle_tooltip.html\bundle.js') `
@@ -84,8 +94,12 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 & (Join-Path $PSScriptRoot 'validate.ps1') -PackagePath $packagePath
+$bundlePath = & (Join-Path $PSScriptRoot 'build-bundle.ps1') `
+    -GameRoot $GameRoot `
+    -PackagePath $packagePath
 if ($Install) {
     & (Join-Path $PSScriptRoot 'install.ps1') -GameRoot $GameRoot -PackagePath $packagePath
 }
 
 Write-Output $packagePath
+Write-Output $bundlePath

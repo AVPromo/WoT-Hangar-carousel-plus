@@ -40,8 +40,6 @@ const HCP_TOOLTIP_LANGUAGE_ALIASES = {
 let hcpTooltipState = { stats: {}, statsConfig: {} };
 let hcpTooltipStateJson = "";
 let hcpTooltipScheduled = false;
-let hcpTooltipModelLogged = false;
-let hcpTooltipRenderLogged = false;
 
 function hcpTooltipUnwrap(value) {
   if (value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "value")) {
@@ -176,11 +174,6 @@ function hcpTooltipRender() {
     root.insertBefore(section, status);
   }
 
-  if (!hcpTooltipRenderLogged) {
-    hcpTooltipRenderLogged = true;
-    console.warn(`[HangarCarouselPlusTooltip] rendered ${items.length} statistic rows`);
-  }
-
   const signature = JSON.stringify([items, hcpTooltipLanguage()]);
   if (section.dataset.signature === signature) return;
   section.dataset.signature = signature;
@@ -218,10 +211,6 @@ function hcpTooltipScheduleRender() {
 function hcpTooltipSyncModel() {
   const model = hcpTooltipFindModel();
   if (!model) return;
-  if (!hcpTooltipModelLogged) {
-    hcpTooltipModelLogged = true;
-    console.warn("[HangarCarouselPlusTooltip] statistics model connected");
-  }
   const stateJson = String(hcpTooltipUnwrap(model.stateJson) || "{}");
   if (stateJson === hcpTooltipStateJson) return;
   hcpTooltipStateJson = stateJson;
@@ -235,12 +224,10 @@ function hcpTooltipSyncModel() {
 }
 
 engine.whenReady.then(() => {
-  console.warn("[HangarCarouselPlusTooltip] script loaded");
   const observer = new MutationObserver(hcpTooltipScheduleRender);
   observer.observe(document.body, { childList: true, subtree: true });
   window.engine.on("subViews.onAdded", hcpTooltipSyncModel);
-  window.setInterval(hcpTooltipSyncModel, 200);
-  window.setInterval(hcpTooltipRender, 250);
+  window.setInterval(hcpTooltipSyncModel, 1000);
   hcpTooltipSyncModel();
   hcpTooltipScheduleRender();
 });

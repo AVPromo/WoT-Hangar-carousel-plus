@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.11 - 2026-08-17
+
+- Support one through four carousel rows in the separate Comp7, Comp7 Light, Frontline, Fun Random, and Last Stand Gameface hangars.
+- Apply automatic row selection and native-list sorting consistently in every compatible event hangar namespace.
+- Add checksum and replacement-count guards for all five event bundles and validate every patched renderer in the release package.
+
+## 0.8.10 - 2026-08-14
+
+- Treat transient Gameface carousel remounts as normal lifecycle events instead of warnings.
+- Remove redundant tooltip render polling and retain mutation-driven rendering with a low-frequency model sync fallback.
+- Keep live Wulf models in a weak registry so repeated hangar reconstruction cannot retain stale model instances.
+- Replace unsupported Gameface selectors and tooltip white-space styling with explicit classes and line elements.
+- Produce a checksum-verified complete ZIP with all runtime dependencies in `dist` on every build.
+
 ## 0.8.9 - 2026-08-12
 
 - Add ascending and descending sorting by Battle Pass points earned on each vehicle in the current season.

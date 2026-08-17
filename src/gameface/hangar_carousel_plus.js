@@ -242,6 +242,12 @@ function callCommand(commandName, payload) {
   }
 }
 
+function debugLog(message) {
+  if (state.debug && typeof console.debug === "function") {
+    console.debug(`[HangarCarouselPlus] ${message}`);
+  }
+}
+
 function scheduleRender() {
   if (scheduled || renderTimer !== null) return;
   renderTimer = window.setTimeout(() => {
@@ -395,10 +401,11 @@ function renderCardStats() {
     visible += 1;
   });
 
+  if (!cards.length) return;
   const diagnostic = `${cards.length}/${matched}/${visible}/${Object.keys(state.stats || {}).length}`;
   if (diagnostic !== lastStatsDiagnostic) {
     lastStatsDiagnostic = diagnostic;
-    console.warn(`[HangarCarouselPlus] cards/matched/visible/stats: ${diagnostic}; sample: ${sampleText}`);
+    debugLog(`cards/matched/visible/stats: ${diagnostic}; sample: ${sampleText}`);
   }
 }
 
@@ -420,7 +427,13 @@ function showTooltip(anchor, title, description) {
   if (description) {
     const descriptionElement = document.createElement("div");
     descriptionElement.className = "hcp-hover-tooltip-description";
-    descriptionElement.textContent = description;
+    String(description).split("\n").forEach((lineText, lineIndex) => {
+      const line = document.createElement("div");
+      line.className = "hcp-hover-tooltip-description-line";
+      if (lineIndex) line.classList.add("hcp-hover-tooltip-description-line--spaced");
+      line.textContent = lineText;
+      descriptionElement.appendChild(line);
+    });
     tooltip.appendChild(descriptionElement);
   }
   tooltip.style.left = `${Math.round(rect.right + 8)}px`;
@@ -438,6 +451,7 @@ function bindTooltip(button, title, description) {
 function addHeading(parent, text) {
   const heading = document.createElement("div");
   heading.className = "hcp-native-heading";
+  if (parent.children.length) heading.classList.add("hcp-native-heading--spaced");
   heading.textContent = text;
   parent.appendChild(heading);
 }
@@ -494,6 +508,7 @@ function renderNativeFilterPanel() {
     const isActive = filter.id === "all" ? activeFilters.length === 0 : activeFilters.includes(filter.id);
     if (isActive) button.classList.add("hcp-native-filter--active");
     button.disabled = !state.enabled;
+    if (button.disabled) button.classList.add("hcp-native-control--disabled");
     button.dataset.filterId = filter.id;
     button.innerHTML = FILTER_ICONS[filter.id] || `<span>${labels()[filter.id] || filter.id}</span>`;
     button.setAttribute("aria-label", labels()[filter.id] || filter.id);

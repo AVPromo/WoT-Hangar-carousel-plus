@@ -33,7 +33,8 @@ The default game root is declared in `tools/build.ps1`. Override it for another 
 The package is written to:
 
 ```text
-dist\com.rcooler.hangar_carousel_plus_0.8.9.wotmod
+dist\com.rcooler.hangar_carousel_plus_0.8.11.wotmod
+dist\Hangar_Carousel_Plus_0.8.11_complete.zip
 ```
 
 Build and install in one step:
@@ -53,9 +54,10 @@ The installer backs up an existing HCP package before replacement. It preserves 
 3. extracts and patches checksum-verified carousel and tooltip resources from the local client;
 4. packages the staging tree as a `.wotmod` file;
 5. runs `tools/validate.ps1` against the completed package;
-6. optionally installs it into the selected game client.
+6. creates and validates a complete ZIP from checksum-pinned files in `dependencies/`;
+7. optionally installs the standalone package into the selected game client.
 
-`tools/patch-native-carousel.ps1` generalizes the client's hard-coded row-pair logic so the provider can render one through four rows. `tools/patch-native-tooltip.ps1` adds the HCP statistics renderer and styles to the root vehicle tooltip, which is outside the OpenWG subview injector. Both scripts verify the source resource hashes and every expected substitution.
+`tools/patch-native-carousel.ps1` generalizes the standard hangar's hard-coded row-pair logic so the provider can render one through four rows. `tools/patch-native-event-carousels.ps1` applies the same contract to the separate Comp7, Comp7 Light, Frontline, Fun Random, and Last Stand Gameface namespaces. Battle Royale uses a different provider API and is deliberately not patched. `tools/patch-native-tooltip.ps1` adds the HCP statistics renderer and styles to the root vehicle tooltip, which is outside the OpenWG subview injector. Every native patch verifies the source resource hash and the exact number of substitutions.
 
 The Python bridge publishes configuration, localized strings, filter state, vehicle statistics, sorting data, and row state to Gameface. HCP narrows the native vehicle model before the normal client filters run; it does not create dynamic vehicle playlists. See [docs/architecture.md](docs/architecture.md) for the component-level design.
 
@@ -74,7 +76,7 @@ Sorting direction, last-played timestamps, and carousel row mode are stored in `
 The normal build already invokes the package validator. To validate an existing artifact separately:
 
 ```powershell
-.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.9.wotmod'
+.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.11.wotmod'
 ```
 
 After a client update:

@@ -28,7 +28,9 @@ The native vehicle tooltip gets a child model containing the same configured sta
 
 ## Carousel rows
 
-`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.2 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the locally installed bundle. The build verifies the source SHA and every replacement count. The filter popover deliberately retains its native height because its portal anchor moves with the carousel; HCP scopes a higher-contrast scrollbar style to that popover instead. The generated patched bundle is packaged, but no Wargaming source bundle is stored in the repository.
+`VehicleFiltersDataProvider` is extended to accept row counts one through four and persists the selection in HCP's runtime state. The stock 2.3.1.2 renderer chunks only in pairs and uses equality checks for the double-row branch, so `patch-native-carousel.ps1` generalizes exact expressions in the standard hangar bundle. `patch-native-event-carousels.ps1` applies the same model, sorting, chunking, navigation, rendering, height, and automatic-row contract to the separate Comp7, Comp7 Light, Frontline, Fun Random, and Last Stand hangar bundles. Last Stand's `HangarApp_carousel__double` wrapper is handled independently from the other modes' `Page_carousel__double` wrapper. Battle Royale is not patched because its carousel does not use the shared `VehicleFilters` provider contract.
+
+Every native source has its own SHA-256 guard, and every semantic replacement must match the expected count before a build can continue. The filter popover deliberately retains its native height because its portal anchor moves with the carousel; HCP scopes a higher-contrast scrollbar style to that popover instead. Generated patched bundles are packaged, but no Wargaming source bundle is stored in the repository.
 
 ## Sorting and last played
 
@@ -39,6 +41,6 @@ The garage API does not provide a historical last-played value per vehicle. HCP 
 ## Compatibility boundaries
 
 - Python: generated `VehicleFilterModel`, `VehiclesStatisticsPresenter`, vehicle/tankman wrappers, and post-progression completion.
-- Gameface: OpenWG subview injection, `FilterPopover_*`, `data-test-id="vehicleCard-<intCD>"`, and the checksum-locked WoT 2.3.1 hangar bundle.
+- Gameface: OpenWG subview injection, `FilterPopover_*`, `data-test-id="vehicleCard-<intCD>"`, and the checksum-locked standard and compatible event hangar bundles for WoT 2.3.1.
 
-Every client update requires re-validating the native bundle substitutions before a new package can be built.
+Every client update requires re-validating all native bundle substitutions before a new package can be built.

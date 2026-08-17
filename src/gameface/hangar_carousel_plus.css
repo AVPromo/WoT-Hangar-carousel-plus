@@ -60,7 +60,7 @@
   text-transform: uppercase;
 }
 
-.hcp-native-heading:not(:first-child) {
+.hcp-native-heading--spaced {
   margin-top: 8rem;
 }
 
@@ -251,9 +251,7 @@
   stroke: #fff !important;
 }
 
-.hcp-native-filter:disabled,
-.hcp-native-icon-button:disabled,
-.hcp-native-row-button:disabled {
+.hcp-native-control--disabled {
   cursor: default;
   opacity: 0.45;
 }
@@ -290,7 +288,11 @@
   font-size: 14rem;
   font-weight: 400;
   line-height: 18rem;
-  white-space: pre-line;
+  white-space: normal;
+}
+
+.hcp-hover-tooltip-description-line--spaced {
+  margin-top: 3rem;
 }
 
 .hcp-card-stats-host {
