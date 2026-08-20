@@ -21,14 +21,14 @@ No account credentials or statistics are sent to an external service.
 
 ## Download and install
 
-[Download the complete Hangar Carousel Plus 0.8.9 bundle](releases/0.8.9/Hangar_Carousel_Plus_0.8.9_complete.zip?raw=1)
+[Download the complete Hangar Carousel Plus 0.8.12 bundle](releases/0.8.12/Hangar_Carousel_Plus_0.8.12_complete.zip?raw=1)
 
 1. Close World of Tanks.
-2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\2.3.1.2\`.
+2. Remove older `com.rcooler.hangar_carousel_plus_*.wotmod` files from `<game>\mods\<current-client-version>\`.
 3. Extract the ZIP directly into the World of Tanks root and allow it to merge the `mods` directory.
 4. Start the game.
 
-The bundle already contains HCP and all required dependencies in the standard `mods\2.3.1.2\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.9/com.rcooler.hangar_carousel_plus_0.8.9.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
+The bundle already contains HCP and all required dependencies in the standard `mods\<current-client-version>\` structure. Advanced users can also download the [standalone HCP file](releases/0.8.12/com.rcooler.hangar_carousel_plus_0.8.12.wotmod?raw=1). Checksums are stored in `SHA256SUMS.txt`, and bundled third-party components are documented in `THIRD_PARTY.md`.
 
 ## Requirements
 

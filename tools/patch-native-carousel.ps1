@@ -11,7 +11,7 @@ $GameRoot = [IO.Path]::GetFullPath($GameRoot)
 $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 $packagePath = Join-Path $GameRoot 'res\packages\gui-part3.pkg'
 $entryPath = 'gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js'
-$expectedHash = '21C58DA5788BDDF31655B3510B027505A2418355D299D50773E6F414F28779D0'
+$expectedHash = 'A0D8375A7733B09BD71C7A291167AC7713780DF1438371EF9777E902E3971551'
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -44,7 +44,7 @@ finally {
     $sha.Dispose()
 }
 if ($sourceHash -ne $expectedHash) {
-    throw "Unsupported native hangar bundle $sourceHash; expected WoT 2.3.1.2 bundle $expectedHash"
+    throw "Unsupported native hangar bundle $sourceHash; expected WoT 2.3.1.3 bundle $expectedHash"
 }
 
 $source = [Text.Encoding]::UTF8.GetString($sourceBytes)
@@ -66,8 +66,8 @@ $replacements = @(
         'carouselTypeChange:n.createCallback(e=>"object"==typeof e?e:{rowCount:e},"onCarouselTypeChange")'
     ),
     @(
-        'onClick:function(){const e=1===a?2:1;t.controls.carouselTypeChange(e)},children:o.jsx(Le,{className:l(cb.carouselIcon,2===a&&cb.carouselIcon__active),path:"hangar.filter.carousel_selector"})',
-        'onClick:function(){const e=a>=4?1:a+1;t.controls.carouselTypeChange(e)},children:o.jsx(Le,{className:l(cb.carouselIcon,1<a&&cb.carouselIcon__active),path:"hangar.filter.carousel_selector"})'
+        'onClick:function(){const e=1===a?2:1;t.controls.carouselTypeChange(e)},children:o.jsx(Te,{className:l(cb.carouselIcon,2===a&&cb.carouselIcon__active),path:"hangar.filter.carousel_selector"})',
+        'onClick:function(){const e=a>=4?1:a+1;t.controls.carouselTypeChange(e)},children:o.jsx(Te,{className:l(cb.carouselIcon,1<a&&cb.carouselIcon__active),path:"hangar.filter.carousel_selector"})'
     ),
     @(
         'return xt(2===e?t.double:t.single)',
