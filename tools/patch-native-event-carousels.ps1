@@ -23,7 +23,7 @@ $bundles = @(
         Name = 'Comp7'
         Package = 'comp7.pkg'
         Entry = 'comp7/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js'
-        Hash = 'A6DDFDE35443378751014DA2159A478909E0BC37B902D6A6555383C171C3381A'
+        Hash = '14A26559004806E640BB0F30627128FE4EE7EAAA8CEF9AF329B97EBAA4AB5987'
         RootKind = 'standard'
         NativeChangerCount = 1
     },
@@ -47,7 +47,7 @@ $bundles = @(
         Name = 'Last Stand'
         Package = 'last_stand.pkg'
         Entry = 'last_stand/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js'
-        Hash = '6D4E872689D78055DBD2EDC6FD6A1043378A6739E0F415F19B905A837C86C1A5'
+        Hash = 'D6BAAB13DA17167515F5829EA2536F5E1D619B63557F718246A49BF1A366F165'
         RootKind = 'lastStand'
         NativeChangerCount = 2
     }
@@ -123,7 +123,7 @@ foreach ($bundle in $bundles) {
         $sha.Dispose()
     }
     if ($sourceHash -ne $bundle.Hash) {
-        throw "Unsupported $($bundle.Name) hangar bundle $sourceHash; expected WoT 2.3.1.2 bundle $($bundle.Hash)."
+        throw "Unsupported $($bundle.Name) hangar bundle $sourceHash; expected WoT 2.3.1.3 bundle $($bundle.Hash)."
     }
 
     $source = [Text.Encoding]::UTF8.GetString($sourceBytes)

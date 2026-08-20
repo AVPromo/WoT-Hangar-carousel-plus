@@ -33,8 +33,8 @@ The default game root is declared in `tools/build.ps1`. Override it for another 
 The package is written to:
 
 ```text
-dist\com.rcooler.hangar_carousel_plus_0.8.11.wotmod
-dist\Hangar_Carousel_Plus_0.8.11_complete.zip
+dist\com.rcooler.hangar_carousel_plus_0.8.12.wotmod
+dist\Hangar_Carousel_Plus_0.8.12_complete.zip
 ```
 
 Build and install in one step:
@@ -76,7 +76,7 @@ Sorting direction, last-played timestamps, and carousel row mode are stored in `
 The normal build already invokes the package validator. To validate an existing artifact separately:
 
 ```powershell
-.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.11.wotmod'
+.\tools\validate.ps1 -PackagePath '.\dist\com.rcooler.hangar_carousel_plus_0.8.12.wotmod'
 ```
 
 After a client update:

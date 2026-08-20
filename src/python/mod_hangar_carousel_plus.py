@@ -34,7 +34,7 @@ from skeletons.gui.shared import IItemsCache
 
 
 MOD_ID = 'hangar_carousel_plus'
-MOD_VERSION = '0.8.11'
+MOD_VERSION = '0.8.12'
 PLAYLIST_ID_PREFIX = 'rcooler_hcp_'
 CONFIG_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.json')
 RUNTIME_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.runtime.json')
@@ -107,7 +107,7 @@ class _Services(object):
 
 
 SERVICES = _Services()
-# ViewModel has no dispose/finalize hook in the WoT 2.3.1.2 Wulf API, but it is
+# ViewModel has no dispose/finalize hook in the supported WoT 2.3.1.x Wulf API, but it is
 # explicitly weak-referenceable.  Keeping these child models in a normal list
 # would therefore extend their lifetime every time the hangar view is rebuilt.
 MODELS = weakref.WeakSet()

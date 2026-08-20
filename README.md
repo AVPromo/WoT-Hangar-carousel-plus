@@ -21,14 +21,14 @@ Hangar Carousel Plus — мод для ангара World of Tanks 2.x, який
 
 ## Завантаження та встановлення
 
-[Завантажити повний комплект Hangar Carousel Plus 0.8.9](releases/0.8.9/Hangar_Carousel_Plus_0.8.9_complete.zip?raw=1)
+[Завантажити повний комплект Hangar Carousel Plus 0.8.12](releases/0.8.12/Hangar_Carousel_Plus_0.8.12_complete.zip?raw=1)
 
 1. Закрийте World of Tanks.
-2. Видаліть старі `com.rcooler.hangar_carousel_plus_*.wotmod` із `<гра>\mods\2.3.1.2\`.
+2. Видаліть старі `com.rcooler.hangar_carousel_plus_*.wotmod` із `<гра>\mods\<поточна-версія-клієнта>\`.
 3. Розпакуйте ZIP безпосередньо в корінь World of Tanks, погодившись об’єднати папку `mods`.
 4. Запустіть гру.
 
-Комплект уже містить HCP та всі його залежності у стандартній структурі `mods\2.3.1.2\`. Для досвідчених користувачів також доступний [окремий файл HCP](releases/0.8.9/com.rcooler.hangar_carousel_plus_0.8.9.wotmod?raw=1). Контрольні суми містяться в `SHA256SUMS.txt`, а сторонні компоненти перелічені в `THIRD_PARTY.md`.
+Комплект уже містить HCP та всі його залежності у стандартній структурі `mods\<поточна-версія-клієнта>\`. Для досвідчених користувачів також доступний [окремий файл HCP](releases/0.8.12/com.rcooler.hangar_carousel_plus_0.8.12.wotmod?raw=1). Контрольні суми містяться в `SHA256SUMS.txt`, а сторонні компоненти перелічені в `THIRD_PARTY.md`.
 
 ## Вимоги
 

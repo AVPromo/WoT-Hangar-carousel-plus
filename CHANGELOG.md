@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.12 - 2026-08-20
+
+- Add compatibility with the Wargaming EU 2.3.1.3 client bundles.
+- Revalidate the standard, Comp7, and Last Stand native carousel substitutions after the client rebuild.
+- Preserve byte-identical Frontline, Comp7 Light, Fun Random, and vehicle-tooltip integrations.
+
 ## 0.8.11 - 2026-08-17
 
 - Support one through four carousel rows in the separate Comp7, Comp7 Light, Frontline, Fun Random, and Last Stand Gameface hangars.
