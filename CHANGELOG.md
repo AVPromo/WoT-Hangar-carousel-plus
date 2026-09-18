@@ -1,3 +1,9 @@
+# 0.8.15 — 2026-09-18
+
+- Rebuilt native carousel and tooltip bundles for WoT EU 2.4.0.1 #952.
+- Reviewed updated imports/footer shadow; all 10 private Python API contracts remain unchanged.
+- Preserves existing configuration and runtime state. User confirmed the installed build works in WoT EU 2.4.0.1.
+
 # Changelog
 
 ## 0.8.14 - 2026-09-02

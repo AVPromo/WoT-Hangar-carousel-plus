@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
-  "reviewedClients": ["2.3.1.3 #926", "2.4.0.0 #930"],
+  "reviewedClients": [
+    "2.3.1.3 #926",
+    "2.4.0.0 #930",
+    "2.4.0.1 #952"
+  ],
   "nodes": {
     "gui/impl/gen/view_models/views/lobby/hangar/sub_views/vehicle_filter_model.pyc": {
       "<module>.VehicleFilterModel": "acb4d17304324ca3d07c8fbabdde377b170e80895df2f7e9eb9741297dac13d7"
