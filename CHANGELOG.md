@@ -1,3 +1,8 @@
+# 0.8.18 — 2026-10-11
+
+- Fix disappearing Garage elements when entering Neon Dash (issue #5). Use a dedicated React import for the automatic-row effect so the event page's navigation variable cannot shadow it.
+- Add regression coverage for shadowed React bindings across all six supported hangar bundles.
+
 # 0.8.17 — 2026-10-01
 
 - Rebuild for World of Tanks EU 2.4.0.2 #956 (client 2626510, overrides 2629859).

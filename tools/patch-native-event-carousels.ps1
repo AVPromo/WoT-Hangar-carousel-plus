@@ -257,6 +257,22 @@ foreach ($bundle in $bundles) {
         "$($bundle.Name) generic row chunker"
     $reactVariable = $script:reactVariable
 
+    # The page can shadow the minified React name used by the row renderer
+    # (Neon Dash/Fun Random uses `e` for its navigation object). Import the same
+    # export under a unique name for our hook instead of reusing that binding.
+    if ($source -match '\bhcpReact\b') { throw 'HCP React alias already exists in native source.' }
+    $reactImports = @()
+    foreach ($import in [regex]::Matches($source, 'import\{(?<bindings>[^}]+)\}from"(?<path>[^"]+)";')) {
+        $binding = [regex]::Match($import.Groups['bindings'].Value,
+            '(?:^|,)(?<export>[A-Za-z_$][\w$]*) as ' + [regex]::Escape($reactVariable) + '(?:,|$)')
+        if ($binding.Success) {
+            $reactImports += 'import{' + $binding.Groups['export'].Value +
+                ' as hcpReact}from"' + $import.Groups['path'].Value + '";'
+        }
+    }
+    if ($reactImports.Count -ne 1) { throw "Expected one native React import for $($bundle.Name)." }
+    $source = $reactImports[0] + $source
+
     $source = Replace-RegexExact $source `
         'function\(e,t,a,s,n\)\{const (?<multi>[A-Za-z_$][\w$]*)=2===s;function' `
         { param($match) return $match.Value.Replace('=2===s', '=1<s') } `
@@ -329,7 +345,7 @@ foreach ($bundle in $bundles) {
             param($match)
             $filterMatch = [regex]::Match($match.Groups['prefix'].Value, 'hcpAuto=(?<filter>[A-Za-z_$][\w$]*)\.model')
             $filter = $filterMatch.Groups['filter'].Value
-            return $match.Groups['prefix'].Value + ';return ' + $reactVariable +
+            return $match.Groups['prefix'].Value + ';return hcpReact' +
                 '.useEffect(()=>{if(!hcpAuto||hcpAmount<=0)return;' +
                 'const hcpRows=hcpAmount<=8?1:hcpAmount<=16?2:hcpAmount<=24?3:4,' +
                 'hcpTimer=setTimeout(()=>{hcpRows!==' + $pageRows + '&&' + $filter +

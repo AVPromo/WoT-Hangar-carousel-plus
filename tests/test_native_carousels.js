@@ -24,6 +24,38 @@ for (const relative of bundles) {
   const syntax = spawnSync(process.execPath, ["--check", filename], { encoding: "utf8" });
   assert.strictEqual(syntax.status, 0, `${relative}: ${syntax.stderr}`);
 
+  // Neon Dash's page declares `e` as navigation, shadowing the React import
+  // used by another component. Exercise the injected hook with that shadow.
+  const reactImport = one(source,
+    /import\{(?<exported>[\w$]+) as hcpReact\}from"(?<path>[^"]+)";/g,
+    `${relative} isolated React import`);
+  const hook = one(source,
+    /(?<call>hcpReact\.useEffect\(\(\)=>\{if\(!hcpAuto\|\|hcpAmount<=0\)return;.*?\},\[hcpAuto,hcpAmount,(?<rows>[\w$]+),(?<filter>[\w$]+)\.controls\]\))/g,
+    `${relative} automatic row effect`);
+  const originalImport = [...source.matchAll(/import\{([^}]+)\}from"([^"]+)";/g)]
+    .find(match => match[2] === reactImport.path && match[1].split(",")
+      .some(binding => binding.startsWith(`${reactImport.exported} as `) && !binding.endsWith(" as hcpReact")));
+  assert(originalImport, `${relative}: React alias must use the native import`);
+  const shadow = originalImport[1].split(",")
+    .find(binding => binding.startsWith(`${reactImport.exported} as `)).split(" as ")[1];
+  const effects = [], changes = [], timers = [];
+  const runEffect = new Function("hcpReact", "hcpAuto", "hcpAmount", hook.rows, hook.filter,
+    "setTimeout", "clearTimeout", `const ${shadow}={location:"hangar"};return ${hook.call};`);
+  const react = { useEffect: effect => effects.push(effect) };
+  const filter = { controls: { carouselTypeChange: value => changes.push(value) } };
+  const schedule = (callback, delay) => { assert.strictEqual(delay, 200); timers.push(callback); return 1; };
+  runEffect(react, true, 25, 2, filter, schedule, () => {});
+  assert.strictEqual(effects.length, 1);
+  const cleanup = effects.pop()();
+  assert.strictEqual(typeof cleanup, "function");
+  timers.pop()();
+  assert.deepStrictEqual(changes, [{ rowCount: 4, hcpAuto: true }]);
+  for (const [enabled, amount] of [[false, 25], [true, 0]]) {
+    runEffect(react, enabled, amount, 2, filter, schedule, () => {});
+    assert.strictEqual(effects.pop()(), undefined);
+    assert.strictEqual(timers.length, 0);
+  }
+
   const chunk = one(source,
     /(?<body>const e=\[\];for\(let t=0;t<(?<list>[\w$]+)\.length;t\+=(?<rows>[\w$]+)\)e\.push\(\k<list>\.slice\(t,t\+\k<rows>\)\);const a=e\.at\(-1\);if\(a\)for\(;a\.length<\k<rows>;\)a\.push\((?<empty>[\w$]+)\);return e)/g,
     `${relative} chunker`);
