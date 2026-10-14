@@ -7,8 +7,11 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const stage = path.resolve(process.argv[2] || "build/stage");
+const modern = fs.existsSync(path.join(stage, "res/gui/gameface/_dist/production/mono/hangar/main/bundle.js"));
+const resourcePath = value => modern ? value.replace("views/main/main.html/", "main/").replace("views/vehicle_tooltip/vehicle_tooltip.html/", "vehicle_tooltip/").replace("views/hangar/hangar.html/", "hangar/") : value;
 const standard = "res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js";
 const modes = ["comp7_light", "comp7", "frontline", "fun_random", "last_stand"];
+if (modern) modes.push("fort_rush");
 const bundles = [standard, ...modes.map(mode =>
   `res/${mode}/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js`)];
 
@@ -19,25 +22,32 @@ function one(source, pattern, label) {
 }
 
 for (const relative of bundles) {
-  const filename = path.join(stage, relative);
+  const filename = path.join(stage, resourcePath(relative));
   const source = fs.readFileSync(filename, "utf8");
   const syntax = spawnSync(process.execPath, ["--check", filename], { encoding: "utf8" });
   assert.strictEqual(syntax.status, 0, `${relative}: ${syntax.stderr}`);
 
   // Neon Dash's page declares `e` as navigation, shadowing the React import
   // used by another component. Exercise the injected hook with that shadow.
-  const reactImport = one(source,
-    /import\{(?<exported>[\w$]+) as hcpReact\}from"(?<path>[^"]+)";/g,
-    `${relative} isolated React import`);
   const hook = one(source,
     /(?<call>hcpReact\.useEffect\(\(\)=>\{if\(!hcpAuto\|\|hcpAmount<=0\)return;.*?\},\[hcpAuto,hcpAmount,(?<rows>[\w$]+),(?<filter>[\w$]+)\.controls\]\))/g,
     `${relative} automatic row effect`);
-  const originalImport = [...source.matchAll(/import\{([^}]+)\}from"([^"]+)";/g)]
-    .find(match => match[2] === reactImport.path && match[1].split(",")
-      .some(binding => binding.startsWith(`${reactImport.exported} as `) && !binding.endsWith(" as hcpReact")));
-  assert(originalImport, `${relative}: React alias must use the native import`);
-  const shadow = originalImport[1].split(",")
-    .find(binding => binding.startsWith(`${reactImport.exported} as `)).split(" as ")[1];
+  let shadow;
+  if (!source.includes(" as hcpReact}")) {
+    shadow = one(source,
+      /(?<original>[\w$]+)=[\w$]+\([\w$]+\(\)\),hcpReact=\k<original>,/g,
+      `${relative} isolated module React namespace`).original;
+  } else {
+    const reactImport = one(source,
+      /import\{(?<exported>[\w$]+) as hcpReact\}from"(?<path>[^"]+)";/g,
+      `${relative} isolated React import`);
+    const originalImport = [...source.matchAll(/import\{([^}]+)\}from"([^"]+)";/g)]
+      .find(match => match[2] === reactImport.path && match[1].split(",")
+        .some(binding => binding.startsWith(`${reactImport.exported} as `) && !binding.endsWith(" as hcpReact")));
+    assert(originalImport, `${relative}: React alias must use the native import`);
+    shadow = originalImport[1].split(",")
+      .find(binding => binding.startsWith(`${reactImport.exported} as `)).split(" as ")[1];
+  }
   const effects = [], changes = [], timers = [];
   const runEffect = new Function("hcpReact", "hcpAuto", "hcpAmount", hook.rows, hook.filter,
     "setTimeout", "clearTimeout", `const ${shadow}={location:"hangar"};return ${hook.call};`);
@@ -105,9 +115,36 @@ for (const relative of bundles) {
   process.stdout.write(`PASS ${relative}: syntax, 144 chunk cases, automatic rows, sorting, DOM anchors\n`);
 }
 
-const tooltip = path.join(stage, "res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js");
+const tooltip = path.join(stage, resourcePath("res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js"));
 const tooltipSource = fs.readFileSync(tooltip, "utf8");
 const tooltipSyntax = spawnSync(process.execPath, ["--check", tooltip], { encoding: "utf8" });
 assert.strictEqual(tooltipSyntax.status, 0, tooltipSyntax.stderr);
 assert(tooltipSource.includes("Tooltip_status_") && tooltipSource.includes("Tooltip_section_"));
 process.stdout.write("PASS tooltip: syntax and DOM anchors\n");
+
+// Execute the actual startup callback on special-mode URLs. No observers,
+// event subscriptions or polling should be started on these pages.
+const controls = fs.readFileSync(path.join(stage,
+  "res/gui/gameface/mods/rcooler/hangar_carousel_plus/hangar_carousel_plus.js"), "utf8");
+const startupMarker = "engine.whenReady.then(() => {";
+const startup = controls.slice(controls.lastIndexOf(startupMarker) + startupMarker.length).replace(/\}\);\s*$/, "");
+const boot = new Function("window", "MutationObserver", startup);
+for (const [mode, page] of [
+  ["fort_rush", "battle/fort_rush_vehicle_selector/fort_rush_vehicle_selector.html"],
+  ["fort_rush", "battle/fort_rush_hud/fort_rush_hud.html"],
+  ["halloween", "lobby/hangar/hangar.html"],
+  ["battle_royale", "lobby/hangar/hangar.html"]
+]) {
+  const forbidden = () => { throw new Error(`${mode}: HCP must not start UI observers`); };
+  boot({ location: { href: `coui://${mode}/gui/gameface/_dist/production/mono/${page}` },
+    engine: { on: forbidden }, setInterval: forbidden }, forbidden);
+}
+// Black Signal's lobby must reach enabled UI setup, unlike its battle pages.
+const enabledSentinel = new Error("enabled lobby");
+const lobbyBoot = new Function("window", "document", startup);
+assert.throws(() => lobbyBoot({ location: {
+  href: "coui://fort_rush/gui/gameface/_dist/production/mono/lobby/hangar/hangar.html"
+}}, { documentElement: { classList: { add(name) {
+  assert.strictEqual(name, "hcp-enabled"); throw enabledSentinel;
+}}}}), error => error === enabledSentinel);
+console.log("PASS event UI: Black Signal lobby enabled; Babylon, Steel Hunter and battle respawn stay native");

@@ -51,6 +51,16 @@ $bundles = @(
     }
 )
 
+if ($profile.Hashes.PSObject.Properties['fort_rush']) {
+    $bundles += @{
+        Name = 'Black Signal'
+        Package = 'fort_rush.pkg'
+        Entry = 'fort_rush/gui/gameface/_dist/production/mono/lobby/hangar/bundle.js'
+        RootKind = 'standard'
+        NativeChangerCount = 1
+    }
+}
+
 if ($StandardOutputPath) {
     $StandardOutputPath = [IO.Path]::GetFullPath($StandardOutputPath)
     $bundles = @(@{
@@ -63,6 +73,10 @@ if ($StandardOutputPath) {
     })
 }
 foreach ($bundle in $bundles) {
+    $bundle.Entry = Convert-HcpResourcePath -Path $bundle.Entry -Version $profile.Version
+    if ($bundle.ProfileKey -eq 'main' -and [version]$profile.Version -ge [version]'2.4.1.0') {
+        $bundle.Package = 'gui-part2.pkg'
+    }
     $key = if ($bundle.ProfileKey) { $bundle.ProfileKey } else { [IO.Path]::GetFileNameWithoutExtension($bundle.Package) }
     $bundle.Hash = $profile.Hashes.PSObject.Properties[$key].Value
     if (-not $bundle.Hash) { throw "Missing source hash for $key in $($profile.Version)." }
@@ -239,39 +253,66 @@ foreach ($bundle in $bundles) {
         throw "Expected one $($bundle.Name) carousel row binding."
     }
     $renderRows = $rowMatch.Groups['rows'].Value
-    $reactVariable = $null
-    $source = Replace-RegexExact $source `
-        '(?<lhs>[A-Za-z_$][\w$]*)=\((?<source>[A-Za-z_$][\w$]*)=(?<slots>[A-Za-z_$][\w$]*),(?<react>[A-Za-z_$][\w$]*)\.useMemo\(\(\)=>\{const e=\[\];for\(let t=0;t<\k<source>\.length;t\+=2\)e\.push\(\k<source>\.slice\(t,t\+2\)\);return 1===e\.at\(-1\)\?\.length&&e\.at\(-1\)\?\.push\((?<empty>[A-Za-z_$][\w$]*)\),e\},\[\k<source>\]\)\);var \k<source>;' `
-        {
-            param($match)
-            $script:reactVariable = $match.Groups['react'].Value
-            $sourceVariable = $match.Groups['source'].Value
-            return $match.Groups['lhs'].Value + '=(' + $sourceVariable + '=' +
-                $match.Groups['slots'].Value + ',' + $script:reactVariable +
-                '.useMemo(()=>{const e=[];for(let t=0;t<' + $sourceVariable + '.length;t+=' +
-                $renderRows + ')e.push(' + $sourceVariable + '.slice(t,t+' + $renderRows +
-                '));const a=e.at(-1);if(a)for(;a.length<' + $renderRows +
-                ';)a.push(' + $match.Groups['empty'].Value + ');return e},[' +
-                $sourceVariable + ',' + $renderRows + ']));var ' + $sourceVariable + ';'
-        } `
-        "$($bundle.Name) generic row chunker"
-    $reactVariable = $script:reactVariable
-
-    # The page can shadow the minified React name used by the row renderer
-    # (Neon Dash/Fun Random uses `e` for its navigation object). Import the same
-    # export under a unique name for our hook instead of reusing that binding.
-    if ($source -match '\bhcpReact\b') { throw 'HCP React alias already exists in native source.' }
-    $reactImports = @()
-    foreach ($import in [regex]::Matches($source, 'import\{(?<bindings>[^}]+)\}from"(?<path>[^"]+)";')) {
-        $binding = [regex]::Match($import.Groups['bindings'].Value,
-            '(?:^|,)(?<export>[A-Za-z_$][\w$]*) as ' + [regex]::Escape($reactVariable) + '(?:,|$)')
-        if ($binding.Success) {
-            $reactImports += 'import{' + $binding.Groups['export'].Value +
-                ' as hcpReact}from"' + $import.Groups['path'].Value + '";'
-        }
+    # Black Signal retains the direct React import and older chunker syntax.
+    if ([version]$profile.Version -ge [version]'2.4.1.0' -and $bundle.Package -ne 'fort_rush.pkg') {
+        $source = Replace-RegexExact $source `
+            '(?<lhs>[A-Za-z_$][\w$]*)=function\(e\)\{return\(0,(?<react>[A-Za-z_$][\w$]*)\.useMemo\)\(\(\)=>\{const t=\[\];for\(let a=0;a<e\.length;a\+=2\)t\.push\(e\.slice\(a,a\+2\)\);return 1===t\.at\(-1\)\?\.length&&t\.at\(-1\)\?\.push\((?<empty>[A-Za-z_$][\w$]*)\),t\},\[e\]\)\}\((?<slots>[A-Za-z_$][\w$]*)\)' `
+            {
+                param($match)
+                $script:reactVariable = $match.Groups['react'].Value
+                $list = $match.Groups['slots'].Value
+                return $match.Groups['lhs'].Value + '=' + $script:reactVariable +
+                    '.useMemo(()=>{const e=[];for(let t=0;t<' + $list + '.length;t+=' +
+                    $renderRows + ')e.push(' + $list + '.slice(t,t+' + $renderRows +
+                    '));const a=e.at(-1);if(a)for(;a.length<' + $renderRows +
+                    ';)a.push(' + $match.Groups['empty'].Value + ');return e},[' + $list + ',' + $renderRows + '])'
+            } `
+            "$($bundle.Name) generic row chunker"
+        $reactVariable = $script:reactVariable
+        # Capture the module-level namespace immediately after initialization;
+        # page-local minified names can shadow the original React binding.
+        if ($source -match '\bhcpReact\b') { throw 'HCP React alias already exists in native source.' }
+        $source = Replace-RegexExact $source `
+            ('(?<binding>' + [regex]::Escape($reactVariable) + '=[A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*\(\)\)),') `
+            { param($match) return $match.Groups['binding'].Value + ',hcpReact=' + $reactVariable + ',' } `
+            "$($bundle.Name) isolated React namespace"
     }
-    if ($reactImports.Count -ne 1) { throw "Expected one native React import for $($bundle.Name)." }
-    $source = $reactImports[0] + $source
+    else {
+        $reactVariable = $null
+        $source = Replace-RegexExact $source `
+            '(?<lhs>[A-Za-z_$][\w$]*)=\((?<source>[A-Za-z_$][\w$]*)=(?<slots>[A-Za-z_$][\w$]*),(?<react>[A-Za-z_$][\w$]*)\.useMemo\(\(\)=>\{const e=\[\];for\(let t=0;t<\k<source>\.length;t\+=2\)e\.push\(\k<source>\.slice\(t,t\+2\)\);return 1===e\.at\(-1\)\?\.length&&e\.at\(-1\)\?\.push\((?<empty>[A-Za-z_$][\w$]*)\),e\},\[\k<source>\]\)\);var \k<source>;' `
+            {
+                param($match)
+                $script:reactVariable = $match.Groups['react'].Value
+                $sourceVariable = $match.Groups['source'].Value
+                return $match.Groups['lhs'].Value + '=(' + $sourceVariable + '=' +
+                    $match.Groups['slots'].Value + ',' + $script:reactVariable +
+                    '.useMemo(()=>{const e=[];for(let t=0;t<' + $sourceVariable + '.length;t+=' +
+                    $renderRows + ')e.push(' + $sourceVariable + '.slice(t,t+' + $renderRows +
+                    '));const a=e.at(-1);if(a)for(;a.length<' + $renderRows +
+                    ';)a.push(' + $match.Groups['empty'].Value + ');return e},[' +
+                    $sourceVariable + ',' + $renderRows + ']));var ' + $sourceVariable + ';'
+            } `
+            "$($bundle.Name) generic row chunker"
+        $reactVariable = $script:reactVariable
+
+        # The page can shadow the minified React name used by the row renderer
+        # (Neon Dash/Fun Random uses `e` for its navigation object). Import the same
+        # export under a unique name for our hook instead of reusing that binding.
+        if ($source -match '\bhcpReact\b') { throw 'HCP React alias already exists in native source.' }
+        $reactImports = @()
+        foreach ($import in [regex]::Matches($source, 'import\{(?<bindings>[^}]+)\}from"(?<path>[^"]+)";')) {
+            $binding = [regex]::Match($import.Groups['bindings'].Value,
+                '(?:^|,)(?<export>[A-Za-z_$][\w$]*) as ' + [regex]::Escape($reactVariable) + '(?:,|$)')
+            if ($binding.Success) {
+                $reactImports += 'import{' + $binding.Groups['export'].Value +
+                    ' as hcpReact}from"' + $import.Groups['path'].Value + '";'
+            }
+        }
+        if ($reactImports.Count -ne 1) { throw "Expected one native React import for $($bundle.Name)." }
+        $source = $reactImports[0] + $source
+
+    }
 
     $source = Replace-RegexExact $source `
         'function\(e,t,a,s,n\)\{const (?<multi>[A-Za-z_$][\w$]*)=2===s;function' `
@@ -291,29 +332,30 @@ foreach ($bundle in $bundles) {
         "$($bundle.Name) multi-row element count"
 
     $source = Replace-RegexExact $source `
-        'return 2===(?<rows>[A-Za-z_$][\w$]*)\?(?<jsx>[A-Za-z_$][\w$]*)\.jsx' `
+        'return 2===(?<rows>[A-Za-z_$][\w$]*)\?(?<jsx>(?:\(0,)?[A-Za-z_$][\w$]*\.jsx\)?)' `
         {
             param($match)
             if ($match.Groups['rows'].Value -ne $renderRows) {
                 throw "$($bundle.Name) renderer row binding changed unexpectedly."
             }
-            return 'return 1<' + $renderRows + '?' + $match.Groups['jsx'].Value + '.jsx'
+            return 'return 1<' + $renderRows + '?' + $match.Groups['jsx'].Value
         } `
         "$($bundle.Name) multi-row renderer"
 
     if ($bundle.RootKind -eq 'standard') {
         $pageRows = $null
         $source = Replace-RegexExact $source `
-            '(?<filter>[A-Za-z_$][\w$]*)=(?<filterHook>[A-Za-z_$][\w$]*)\(\),(?<selected>[A-Za-z_$][\w$]*)=(?<vehiclesHook>[A-Za-z_$][\w$]*)\(\)\.model\.selectedVehicle\(\),(?<rows>[A-Za-z_$][\w$]*)=\k<filter>\.model\.carouselRowCount\.get\(\)' `
+            '(?<filter>[A-Za-z_$][\w$]*)=(?<filterHook>[A-Za-z_$][\w$]*)\(\),(?<selected>[A-Za-z_$][\w$]*)=(?<vehiclesHook>[A-Za-z_$][\w$]*)\(\)(?<optional>\??)\.model(?<optionalModel>\??)\.selectedVehicle\(\),(?<rows>[A-Za-z_$][\w$]*)=\k<filter>\.model\.carouselRowCount\.get\(\)' `
             {
                 param($match)
                 $script:pageRows = $match.Groups['rows'].Value
                 $filter = $match.Groups['filter'].Value
                 return $filter + '=' + $match.Groups['filterHook'].Value +
                     '(),hcpVehicles=' + $match.Groups['vehiclesHook'].Value + '(),' +
-                    $match.Groups['selected'].Value + '=hcpVehicles.model.selectedVehicle(),' +
+                    $match.Groups['selected'].Value + '=hcpVehicles' + $match.Groups['optional'].Value +
+                    '.model' + $match.Groups['optionalModel'].Value + '.selectedVehicle(),' +
                     $script:pageRows + '=' + $filter + '.model.carouselRowCount.get(),' +
-                    'hcpAmount=hcpVehicles.model.current.amount(),hcpAuto=' + $filter +
+                    'hcpAmount=hcpVehicles?.model?.current?.amount?.()??0,hcpAuto=' + $filter +
                     '.model.hcpCarouselAuto.get()'
             } `
             "$($bundle.Name) page row model"

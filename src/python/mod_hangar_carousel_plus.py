@@ -35,7 +35,7 @@ from skeletons.gui.shared import IItemsCache
 
 
 MOD_ID = 'hangar_carousel_plus'
-MOD_VERSION = '0.8.18'
+MOD_VERSION = '0.8.19'
 PLAYLIST_ID_PREFIX = 'rcooler_hcp_'
 CONFIG_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.json')
 RUNTIME_PATH = os.path.join('mods', 'configs', 'RCooLeR', 'hangar_carousel_plus.runtime.json')
@@ -1181,6 +1181,17 @@ def _patch_vehicle_tooltip():
     CarouselVehicleTooltipModel._hcp_patched = True
 
 
+def _is_hangar_presenter(presenter):
+    # Black Signal also subclasses the lobby providers in its battle respawn
+    # screen. Only reviewed lobby namespaces may share HCP's hangar state.
+    module = type(presenter).__module__
+    if module.startswith('gui.impl.lobby.hangar.'):
+        return True
+    return any(module.startswith(mode + '.gui.impl.lobby.') for mode in (
+        'comp7_core', 'comp7', 'comp7_light', 'frontline', 'fun_random',
+        'last_stand', 'fort_rush'))
+
+
 def _patch_vehicle_filters_provider():
     if getattr(VehicleFiltersDataProvider, '_hcp_rows_patched', False):
         return
@@ -1191,6 +1202,8 @@ def _patch_vehicle_filters_provider():
 
     def patched_on_loading(self, *args, **kwargs):
         result = original_on_loading(self, *args, **kwargs)
+        if not _is_hangar_presenter(self):
+            return result
         _register_filter_provider(self)
         with self.viewModel.transaction() as model:
             model.setHcpCarouselAuto(_carousel_auto())
@@ -1207,12 +1220,16 @@ def _patch_vehicle_filters_provider():
         return result
 
     def patched_finalize(self):
+        if not _is_hangar_presenter(self):
+            return original_finalize(self)
         try:
             _unregister_filter_provider(self)
         finally:
             original_finalize(self)
 
     def patched_type_changed(self, args):
+        if not _is_hangar_presenter(self):
+            return original_type_changed(self, args)
         rows = max(1, min(4, int(args.get('rowCount', 2))))
         if self is not ACTIVE_FILTER_PROVIDER or self not in FILTER_PROVIDERS:
             return None
@@ -1262,22 +1279,27 @@ def _patch_vehicle_statistics_presenter():
 
     def patched_init(self, *args, **kwargs):
         original_init(self, *args, **kwargs)
-        STATISTICS_PRESENTERS.append(self)
+        if _is_hangar_presenter(self):
+            STATISTICS_PRESENTERS.append(self)
 
     def patched_finalize(self):
         try:
             if self in STATISTICS_PRESENTERS:
                 STATISTICS_PRESENTERS.remove(self)
         finally:
-            original_finalize(self)
+            return original_finalize(self)
 
     def patched_update(self, vehicles):
+        if not _is_hangar_presenter(self):
+            return original_update(self, vehicles)
         filtered = _filtered_vehicle_map(vehicles)
         with self.viewModel.transaction() as model:
             model.getStatistics().clear()
         return original_update(self, filtered)
 
     def patched_on_update(self, diff):
+        if not _is_hangar_presenter(self):
+            return original_on_update(self, diff)
         diff = list(diff)
         _invalidate_vehicle_data(diff)
         if not ACTIVE_FILTERS:

@@ -644,6 +644,10 @@ function syncModel() {
 }
 
 engine.whenReady.then(() => {
+  // Special-mode and respawn carousels keep their native controls and state.
+  if (/(?:^|[/:])(halloween|battle_royale)\//.test(window.location.href) ||
+      /(?:^|[/:])fort_rush\/.*\/battle\//.test(window.location.href)) return;
+  document.documentElement.classList.add("hcp-enabled");
   const observer = new MutationObserver((mutations) => {
     if (mutations.some(mutationAffectsHcp)) scheduleRender();
   });

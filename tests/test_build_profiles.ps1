@@ -37,7 +37,19 @@ try {
     if (Test-Path -LiteralPath (Join-Path $scratch 'patched.js')) {
         throw 'Unreviewed source unexpectedly produced a patched output.'
     }
-    Write-Output 'Passed 5 build-profile safety checks.'
+    [IO.File]::WriteAllText((Join-Path $scratch 'version.xml'), '<root><version>2.4.1.0 #974</version></root>')
+    $zip = [IO.Compression.ZipFile]::Open((Join-Path $scratch 'res/packages/gui-part2.pkg'), [IO.Compression.ZipArchiveMode]::Create)
+    try {
+        $entry = $zip.CreateEntry('gui/gameface/_dist/production/mono/hangar/main/bundle.js')
+        $writer = New-Object IO.StreamWriter($entry.Open())
+        try { $writer.Write('unsupported relocated client source') } finally { $writer.Dispose() }
+    }
+    finally { $zip.Dispose() }
+    Expect-Failure { & (Join-Path $repo 'tools/patch-native-carousel.ps1') -GameRoot $scratch -OutputPath (Join-Path $scratch 'patched.js') } 'Unsupported standard hangar bundle'
+    if (Test-Path -LiteralPath (Join-Path $scratch 'patched.js')) {
+        throw 'Unreviewed relocated source unexpectedly produced a patched output.'
+    }
+    Write-Output 'Passed 6 build-profile safety checks.'
 }
 finally {
     $resolved = (Resolve-Path -LiteralPath $scratch).Path

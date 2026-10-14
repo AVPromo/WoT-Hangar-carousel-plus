@@ -23,6 +23,10 @@ $profile = Get-HcpClientProfile -GameRoot $GameRoot
 $bundlePackagePath = Join-Path $GameRoot 'res\packages\gui-part4.pkg'
 $cssPackagePath = Join-Path $GameRoot 'res\packages\gui-part2.pkg'
 $bundleEntryPath = 'gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js'
+$bundleEntryPath = Convert-HcpResourcePath -Path $bundleEntryPath -Version $profile.Version
+if ([version]$profile.Version -ge [version]'2.4.1.0') {
+    $bundlePackagePath = Join-Path $GameRoot 'res/packages/gui-part1.pkg'
+}
 $cssEntryPath = 'gui/gameface/_dist/production/mono/hangar/vehicle_tooltip/vehicle_tooltip.css'
 $expectedBundleHash = $profile.Hashes.tooltip
 $expectedCssHash = $profile.Hashes.tooltipCss

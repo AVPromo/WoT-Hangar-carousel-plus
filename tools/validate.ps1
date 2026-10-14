@@ -10,6 +10,8 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [IO.Compression.ZipFile]::OpenRead($PackagePath)
 try {
+    . (Join-Path $PSScriptRoot 'client-profile.ps1')
+    $resourceVersion = if ($zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/main/bundle.js')) { '2.4.1.0' } else { '2.4.0.2' }
     $eventNativeBundles = @(
         'res/comp7_light/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
         'res/comp7/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
@@ -17,6 +19,10 @@ try {
         'res/fun_random/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js',
         'res/last_stand/gui/gameface/_dist/production/mono/lobby/views/hangar/hangar.html/bundle.js'
     )
+    $eventNativeBundles = @($eventNativeBundles | ForEach-Object { Convert-HcpResourcePath -Path $_ -Version $resourceVersion })
+    if ($resourceVersion -eq '2.4.1.0') {
+        $eventNativeBundles += 'res/fort_rush/gui/gameface/_dist/production/mono/lobby/hangar/bundle.js'
+    }
     $required = @(
         'meta.xml',
         'res/scripts/client/gui/mods/mod_hangar_carousel_plus.pyc',
@@ -29,6 +35,7 @@ try {
         'res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js',
         'res/gui/gameface/_dist/production/mono/hangar/vehicle_tooltip/vehicle_tooltip.css'
     ) + $eventNativeBundles
+    $required = @($required | ForEach-Object { Convert-HcpResourcePath -Path $_ -Version $resourceVersion })
     $names = @($zip.Entries | ForEach-Object FullName)
     foreach ($entry in $required) {
         if ($entry -notin $names) {
@@ -96,7 +103,7 @@ try {
         throw 'Routine Gameface diagnostics must be debug-gated and must not use warnings.'
     }
 
-    $nativeBundle = $zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js')
+    $nativeBundle = $zip.GetEntry((Convert-HcpResourcePath -Path 'res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js' -Version $resourceVersion))
     $nativeStream = $nativeBundle.Open()
     $nativeReader = New-Object IO.StreamReader($nativeStream, [Text.Encoding]::UTF8)
     try {
@@ -119,7 +126,8 @@ try {
     $legacyAuto = $nativeSource.Contains('!p||m<=0)return;const hcpRows=m<=8?1:m<=16?2:m<=24?3:4') -and
         $nativeSource.Contains('m=f.model.current.amount()')
     $profileAuto = $nativeSource.Contains('!hcpAuto||hcpAmount<=0)return;const hcpRows=hcpAmount<=8?1:hcpAmount<=16?2:hcpAmount<=24?3:4') -and
-        $nativeSource.Contains('hcpAmount=hcpVehicles.model.current.amount()')
+        ($nativeSource.Contains('hcpAmount=hcpVehicles.model.current.amount()') -or
+         $nativeSource.Contains('hcpAmount=hcpVehicles?.model?.current?.amount?.()??0'))
     if ((-not $legacyAuto -and -not $profileAuto) -or
         -not $nativeSource.Contains('hcpCarouselAuto') -or
         -not $nativeSource.Contains('hcpAuto:!0})},200);return()=>clearTimeout(hcpTimer)')) {
@@ -171,7 +179,7 @@ try {
         }
     }
 
-    $tooltipBundle = $zip.GetEntry('res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js')
+    $tooltipBundle = $zip.GetEntry((Convert-HcpResourcePath -Path 'res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js' -Version $resourceVersion))
     $tooltipStream = $tooltipBundle.Open()
     $tooltipReader = New-Object IO.StreamReader($tooltipStream, [Text.Encoding]::UTF8)
     try {

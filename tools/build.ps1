@@ -11,6 +11,8 @@ $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 . (Join-Path $PSScriptRoot 'client-profile.ps1')
 $profile = Get-HcpClientProfile -GameRoot $GameRoot
+$mainEntry = Convert-HcpResourcePath -Path 'res/gui/gameface/_dist/production/mono/hangar/views/main/main.html/bundle.js' -Version $profile.Version
+$tooltipEntry = Convert-HcpResourcePath -Path 'res/gui/gameface/_dist/production/mono/hangar/views/vehicle_tooltip/vehicle_tooltip.html/bundle.js' -Version $profile.Version
 $build = Join-Path $repo 'build'
 $dist = Join-Path $repo 'dist'
 [xml]$meta = Get-Content -LiteralPath (Join-Path $repo 'meta.xml') -Raw
@@ -103,6 +105,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 & $Python27 (Join-Path $repo 'tests\test_sorting.py') $pythonSource
 if ($LASTEXITCODE -ne 0) { throw 'Carousel sorting behavioral tests failed.' }
+& $Python27 (Join-Path $repo 'tests/test_event_isolation.py') $pythonSource
+if ($LASTEXITCODE -ne 0) { throw 'Event presenter isolation tests failed.' }
 & $Python27 (Join-Path $repo 'tests\test_settings.py') $pythonSource
 if ($LASTEXITCODE -ne 0) { throw 'Settings template migration tests failed.' }
 if ($PreviewVersion) {
@@ -130,13 +134,13 @@ Copy-Item -LiteralPath (Join-Path $repo 'src\gameface\hangar_carousel_plus.toolt
     -Destination (Join-Path $stage 'res\gui\gameface\mods\rcooler\hangar_carousel_plus\hangar_carousel_plus.tooltip.css')
 & (Join-Path $PSScriptRoot 'patch-native-carousel.ps1') `
     -GameRoot $GameRoot `
-    -OutputPath (Join-Path $stage 'res\gui\gameface\_dist\production\mono\hangar\views\main\main.html\bundle.js')
+    -OutputPath (Join-Path $stage $mainEntry)
 & (Join-Path $PSScriptRoot 'patch-native-event-carousels.ps1') `
     -GameRoot $GameRoot `
     -OutputRoot (Join-Path $stage 'res')
 & (Join-Path $PSScriptRoot 'patch-native-tooltip.ps1') `
     -GameRoot $GameRoot `
-    -BundleOutputPath (Join-Path $stage 'res\gui\gameface\_dist\production\mono\hangar\views\vehicle_tooltip\vehicle_tooltip.html\bundle.js') `
+    -BundleOutputPath (Join-Path $stage $tooltipEntry) `
     -CssOutputPath (Join-Path $stage 'res\gui\gameface\_dist\production\mono\hangar\vehicle_tooltip\vehicle_tooltip.css') `
     -I18nPath (Join-Path $repo 'src\gameface\hangar_carousel_plus.i18n.js') `
     -ScriptPath (Join-Path $repo 'src\gameface\hangar_carousel_plus.tooltip.js') `

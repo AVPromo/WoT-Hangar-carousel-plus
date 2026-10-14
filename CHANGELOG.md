@@ -1,3 +1,14 @@
+# 0.8.19 — 2026-10-14
+
+- Adapt native carousel and tooltip resource paths to WoT EU 2.4.1.0 #974.
+- Support the client's new React namespace initialization and row-chunking expressions across all six hangars; preserve the Neon Dash shadowing fix.
+- Review the filter-provider API change: type and level mappings now use class methods returning the existing constants. HCP's wrapped lifecycle and carousel methods are unchanged.
+- Update bundled Gameface to 1.2.2, ModsSettingsAPI to 1.7.1 and ModsListAPI to 1.8.0.
+- Support Black Signal's lobby carousel, including its direct React import, optional vehicle model, sorting and automatic rows.
+- Keep Babylon native. Exclude battle/respawn presenters from HCP row changes and vehicle filtering; suppress HCP controls and scrollbar styling on excluded pages.
+- Add regression tests for native respawn events, vehicle-list preservation and disabled event-page UI startup.
+- Fresh 0.8.19-rc.3 session confirms initialization, settings registration, statistics, tooltips and automatic rows without HCP errors. Event modes remain statically tested; custom configuration is preserved.
+
 # 0.8.18 — 2026-10-11
 
 - Fix disappearing Garage elements when entering Neon Dash (issue #5). Use a dedicated React import for the automatic-row effect so the event page's navigation variable cannot shadow it.
